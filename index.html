@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUMON COMPUTER - Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Hide HTML number input spin buttons */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Printable Invoice Styling */
+        @media print {
+            body * { visibility: hidden; }
+            #printable-invoice-container, #printable-invoice-container * { visibility: visible; }
+            #printable-invoice-container { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                background: white;
+                color: black;
+            }
+            .no-print { display: none !important; }
+        }
+
+        /* Watermark Styling */
+        .watermark-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .watermark-bg {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 40mm x 50mm Photo Box (approx 151px x 189px) */
+        .photo-40x50 {
+            width: 151px;
+            height: 189px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+
+    <!-- ================= SLEEP LOCK SCREEN ================= -->
+    <div id="sleep-lock-screen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex items-center justify-center p-4 z-[100]">
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 w-full max-w-sm text-center shadow-2xl space-y-4">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30 text-2xl">
+                <i class="fa-solid fa-moon"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white">সিস্টেম স্লিপ মোডে আছে</h2>
+            <p class="text-xs text-slate-400">আনলক করতে আপনার সিকিউরিটি পিন (PIN) দিন</p>
+            
+            <input type="password" id="sleep-pin-input" maxlength="6" placeholder="PIN" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 text-center text-xl font-bold tracking-widest text-white focus:outline-none focus:border-amber-500">
+            
+            <button onclick="unlockSleepMode()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg transition shadow-lg shadow-amber-500/20">
+                আনলক করুন
+            </button>
+            <p id="sleep-error" class="text-xs text-rose-400 hidden"></p>
+        </div>
+    </div>
+
+    <!-- ================= AUTH SCREEN ================= -->
+    <div id="auth-screen" class="flex items-center justify-center min-h-screen p-4 bg-slate-950">
+        <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md relative">
+            
+            <button onclick="toggleLanguage()" class="absolute top-4 right-4 bg-slate-700 hover:bg-slate-600 text-xs text-blue-300 font-semibold px-3 py-1.5 rounded-full border border-slate-600 transition">
+                <i class="fa-solid fa-globe mr-1"></i><span id="lang-btn-auth">English</span>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-3 shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-desktop text-2xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">SUMON COMPUTER</h1>
+                <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">হিসাব ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন</p>
+            </div>
+
+            <div class="flex border-b border-slate-700 mb-6">
+                <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 transition">
+                    <span data-bn="লগইন" data-en="Login">লগইন</span>
+                </button>
+                <button id="tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+                    <span data-bn="সাইন আপ" data-en="Sign Up">সাইন আপ</span>
+                </button>
+            </div>
+
+            <div id="auth-error" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/50 rounded-lg text-rose-400 text-xs text-center"></div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ইমেইল এড্রেস" data-en="Email Address">ইমেইল এড্রেস</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-500 text-sm"></i>
+                        <input type="email" id="login-user" required placeholder="example@mail.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-sm"></i>
+                        <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+                    <span data-bn="প্রবেশ করুন" data-en="Log In">প্রবেশ করুন</span>
+                </button>
+            </form>
+
+            <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="পূর্ণ নাম" data-en="Full Name">পূর্ণ নাম</label>
+                    <input type="text" id="signup-name" required placeholder="Hredoy Roy" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ইমেইল এড্রেস" data-en="Email Address">ইমেইল এড্রেস</label>
+                    <input type="email" id="signup-email" required placeholder="100pc.net@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label>
+                    <input type="text" id="signup-phone" placeholder="01518-411872" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="নতুন পাসওয়ার্ড" data-en="New Password">নতুন পাসওয়ার্ড</label>
+                    <input type="password" id="signup-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" id="signup-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                    <span data-bn="অ্যাকাউন্ট তৈরি করুন" data-en="Create Account">অ্যাকাউন্ট তৈরি করুন</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MAIN DASHBOARD APPLICATION ================= -->
+    <div id="app-screen" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navigation Bar -->
+        <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-desktop text-lg text-white"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg text-white leading-tight">SUMON COMPUTER</h2>
+                    <p class="text-xs text-slate-400" data-bn="কম্পিউটার অপারেটর ড্যাশবোর্ড" data-en="Computer Operator Dashboard">কম্পিউটার অপারেটর ড্যাশবোর্ড</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Language Switcher -->
+                <button onclick="toggleLanguage()" class="bg-slate-700 hover:bg-slate-600 text-xs text-blue-300 font-semibold px-3 py-2 rounded-lg border border-slate-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="lang-btn-app">English</span>
+                </button>
+
+                <!-- Invoice Button -->
+                <button onclick="openInvoiceModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+                    <i class="fa-solid fa-file-invoice"></i> 
+                    <span data-bn="নতুন ইনভয়েস" data-en="New Invoice">নতুন ইনভয়েস</span>
+                </button>
+
+                <!-- Customer Data Button (NEW) -->
+                <button onclick="openCustomerModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-solid fa-users"></i> 
+                    <span data-bn="কাস্টমার ডেটা" data-en="Customer Data">কাস্টমার ডেটা</span>
+                </button>
+
+                <div class="h-6 w-px bg-slate-700 mx-1"></div>
+
+                <!-- Profile Trigger -->
+                <button onclick="toggleProfileModal()" class="flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <div class="w-7 h-7 bg-blue-500/20 border border-blue-500 rounded-full flex items-center justify-center text-blue-400 font-bold text-xs overflow-hidden" id="user-avatar-badge-container">
+                        <span id="user-avatar-badge">U</span>
+                    </div>
+                    <span id="user-display-name" class="text-xs md:text-sm">User</span>
+                </button>
+
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-rose-400 transition p-2">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="flex-1 p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
+            
+            <!-- Filter & Range Selector Panel -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-4 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    
+                    <div class="flex flex-wrap items-center gap-2 md:gap-3 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-xs font-semibold text-blue-400 flex items-center gap-1">
+                            <i class="fa-solid fa-filter"></i> <span data-bn="ফিল্টার:" data-en="Filter:">ফিল্টার:</span>
+                        </span>
+                        
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs text-slate-400" data-bn="হতে" data-en="From">হতে</label>
+                            <input type="date" id="filter-start-date" onchange="applyFilters()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs text-slate-400" data-bn="পর্যন্ত" data-en="To">পর্যন্ত</label>
+                            <input type="date" id="filter-end-date" onchange="applyFilters()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <button onclick="clearDateFilter()" class="text-xs text-slate-400 hover:text-rose-400 transition ml-1" title="Clear Filter">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-400"><i class="fa-regular fa-calendar-days"></i> <span data-bn="মাস:" data-en="Month:">মাস:</span></label>
+                            <input type="month" id="selected-month" onchange="onMonthChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none">
+                        </div>
+
+                        <div class="border-l border-slate-700 pl-4 text-right">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-bn="অর্থবছর মোট আয়" data-en="Fiscal Year Income">অর্থবছর মোট আয়</span>
+                            <span id="fiscal-total" class="font-bold text-blue-400 text-base md:text-lg">৳ 0.00</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                    <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-calculator text-blue-400"></i>
+                        <span data-bn="মোট আয় (ফিল্টারকৃত)" data-en="Total Income (Filtered)">মোট আয় (ফিল্টারকৃত)</span>
+                    </div>
+                    <div id="month-total" class="text-2xl font-bold text-white">৳ 0.00</div>
+                </div>
+
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                    <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-user-gear text-emerald-400"></i>
+                        <span data-bn="আমার অংশ (৫০%)" data-en="My Share (50%)">আমার অংশ (৫০%)</span>
+                    </div>
+                    <div id="my-share" class="text-2xl font-bold text-emerald-400">৳ 0.00</div>
+                </div>
+
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                    <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-hand-holding-dollar text-amber-400"></i>
+                        <span data-bn="মোট অগ্রিম (মালিকের ৫০% হতে)" data-en="Total Advance (from Owner)">মোট অগ্রিম (মালিকের ৫০% হতে)</span>
+                    </div>
+                    <div id="total-advance" class="text-2xl font-bold text-amber-400">৳ 0.00</div>
+                </div>
+
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
+                    <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-building-columns text-purple-400"></i>
+                        <span data-bn="মালিককে প্রদেয় বাকি" data-en="Payable to Owner">মালিককে প্রদেয় বাকি</span>
+                    </div>
+                    <div id="owner-due" class="text-2xl font-bold text-purple-400">৳ 0.00</div>
+                </div>
+            </div>
+
+            <!-- Daily Income Table Sheet -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
+                <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/80">
+                    <h3 class="font-semibold text-slate-200 flex items-center gap-2 text-sm md:text-base">
+                        <i class="fa-solid fa-list-check text-blue-400"></i>
+                        <span data-bn="দৈনিক আয়ের এন্ট্রি তালিকা (মাসিক ১ পাতায়)" data-en="Daily Income Entry List (Monthly 1 Page)">দৈনিক আয়ের এন্ট্রি তালিকা (মাসিক ১ পাতায়)</span>
+                    </h3>
+                    <button onclick="addNewRow()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3.5 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span data-bn="নতুন দিন যুক্ত করুন" data-en="Add New Day">নতুন দিন যুক্ত করুন</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 text-[11px] uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3 w-32" data-bn="তারিখ" data-en="Date">তারিখ</th>
+                                <th class="p-3" data-bn="২৫টি পৃথক কাজের বিবরণ ও আয়" data-en="25 Separate Job Details & Amounts">২৫টি পৃথক কাজের বিবরণ ও আয়</th>
+                                <th class="p-3 text-right w-28" data-bn="মোট আয়" data-en="Total">মোট আয়</th>
+                                <th class="p-3 text-right w-28" data-bn="আমার ৫০%" data-en="My 50%">আমার ৫০%</th>
+                                <th class="p-3 text-right w-28" data-bn="অগ্রিম (মালিক)" data-en="Advance">অগ্রিম (মালিক)</th>
+                                <th class="p-3 text-right w-28" data-bn="মালিক পাবেন" data-en="Owner Receives">মালিক পাবেন</th>
+                                <th class="p-3 text-center w-16" data-bn="মুছুন" data-en="Action">মুছুন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-table-body" class="divide-y divide-slate-700/60">
+                            <!-- Dynamic Daily Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= CUSTOMER DATA MODAL (NEW FEATURE) ================= -->
+    <div id="customer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-5xl my-auto overflow-hidden shadow-2xl">
+            
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/60">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users text-indigo-400"></i>
+                    <span data-bn="কাস্টমার ডাটাবেজ" data-en="Customer Database">কাস্টমার ডাটাবেজ</span>
+                </h3>
+                <button onclick="closeCustomerModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 md:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                
+                <!-- Add Customer Form -->
+                <form onsubmit="handleSaveCustomer(event)" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-3">
+                    <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i> নতুন কাস্টমার যুক্ত করুন
+                    </h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">কাস্টমার নাম</label>
+                            <input type="text" id="cust-name-input" required placeholder="নাম লিখুন..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">মোবাইল নম্বর</label>
+                            <input type="text" id="cust-phone-input" required placeholder="017xxxxxxxx" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">কাস্টমার টাইপ</label>
+                            <select id="cust-type-input" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                                <option value="Regular">Regular (রেগুলার)</option>
+                                <option value="VIP">VIP (ভিআইপি)</option>
+                                <option value="Corporate">Corporate (কর্পোরেট)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">যোগদানের তারিখ</label>
+                            <input type="date" id="cust-date-input" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">ফটো আপলোড (সর্বোচ্চ 100 KB)</label>
+                            <input type="file" id="cust-photo-input" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600/30 file:text-indigo-300 hover:file:bg-indigo-600/50">
+                        </div>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5 py-2 rounded-lg transition shadow-lg shadow-indigo-600/30 font-semibold self-end">
+                            <i class="fa-solid fa-check mr-1"></i> সেভ করুন
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Filter & Export Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-400">টাইপ দিয়ে ফিল্টার:</label>
+                        <select id="cust-filter-type" onchange="renderCustomerList()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+                            <option value="All">সকল টাইপ (All)</option>
+                            <option value="Regular">Regular</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Corporate">Corporate</option>
+                        </select>
+                    </div>
+
+                    <!-- EXPORT EXCEL BUTTON -->
+                    <button onclick="exportCustomersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
+                        <i class="fa-solid fa-file-excel"></i> Export Excel
+                    </button>
+                </div>
+
+                <!-- Customer Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider text-[11px]">
+                            <tr>
+                                <th class="p-3">আইডি</th>
+                                <th class="p-3">নাম</th>
+                                <th class="p-3">মোবাইল</th>
+                                <th class="p-3">টাইপ</th>
+                                <th class="p-3">যোগদানের তারিখ</th>
+                                <th class="p-3 text-center">ফটো</th>
+                                <th class="p-3 text-center">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer-table-body" class="divide-y divide-slate-700/60">
+                            <!-- Dynamic Customer Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PHOTO POP-UP MODAL (40mm x 50mm) ================= -->
+    <div id="photo-view-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 text-center shadow-2xl relative space-y-4">
+            <button onclick="closePhotoModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">কাস্টমার ছবি (40mm x 50mm)</h4>
+            
+            <div class="flex justify-center">
+                <div class="border-2 border-indigo-500 rounded p-1 bg-slate-900 inline-block shadow-lg">
+                    <img id="popup-photo-img" class="photo-40x50 rounded" src="" alt="Customer Photo">
+                </div>
+            </div>
+
+            <p id="popup-photo-name" class="text-sm font-semibold text-white"></p>
+        </div>
+    </div>
+
+    <!-- ================= JOB ENTRY MODAL ================= -->
+    <div id="job-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-auto overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/60">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-400"></i>
+                    <h3 class="font-bold text-white text-sm md:text-base">
+                        <span data-bn="২৫টি কাজের আলাদা আলাদা হিসাব - তারিখ: " data-en="25 Individual Job Breakdown - Date: ">২৫টি কাজের আলাদা আলাদা হিসাব - তারিখ: </span>
+                        <span id="modal-date-display" class="text-blue-400"></span>
+                    </h3>
+                </div>
+                <button onclick="closeJobModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 md:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <p class="text-xs text-slate-400 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">
+                    <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+                    <span data-bn="প্রতিটি কাজের নাম বা বিবরণ এবং ডানপাশে আয় (টাকা) লিখুন।" data-en="Enter description and amount for tasks.">প্রতিটি কাজের নাম বা বিবরণ এবং ডানপাশে আয় (টাকা) লিখুন।</span>
+                </p>
+
+                <div id="jobs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div class="p-4 border-t border-slate-700 bg-slate-900/80 flex flex-wrap justify-between items-center gap-3">
+                <div class="text-sm font-semibold text-slate-300">
+                    <span data-bn="এই দিনের মোট আয়: " data-en="Daily Total: ">এই দিনের মোট আয়: </span>
+                    <span id="modal-calculated-total" class="text-emerald-400 text-lg font-bold ml-1">৳ 0.00</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="closeJobModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs md:text-sm px-4 py-2 rounded-lg transition">
+                        <span data-bn="বন্ধ করুন" data-en="Close">বন্ধ করুন</span>
+                    </button>
+                    <button onclick="saveJobModalData()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm px-5 py-2 rounded-lg transition shadow-lg shadow-blue-600/30">
+                        <span data-bn="সংরক্ষণ করুন" data-en="Save Changes">সংরক্ষণ করুন</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= INVOICE MODAL ================= -->
+    <div id="invoice-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-3xl my-auto overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/60">
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-circle-plus text-emerald-400"></i>
+                    <span data-bn="কাস্টমার ইনভয়েজ তৈরি করুন" data-en="Create Customer Invoice">কাস্টমার ইনভয়েজ তৈরি করুন</span>
+                </h3>
+                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 md:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/50 p-3.5 rounded-xl border border-slate-700">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1" data-bn="গ্রাহকের নাম" data-en="Customer Name">গ্রাহকের নাম</label>
+                        <input type="text" id="inv-customer-name" placeholder="কাস্টমারের নাম..." class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label>
+                        <input type="text" id="inv-customer-phone" placeholder="017xxxxxxxx" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-300" data-bn="কাজের বিবরণ ও মূল্য" data-en="Work Description & Price">কাজের বিবরণ ও মূল্য</label>
+                    <div id="invoice-items" class="space-y-2"></div>
+                    <button onclick="addInvoiceItemRow()" class="text-xs text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1 font-medium pt-1">
+                        <i class="fa-solid fa-plus-circle"></i> <span data-bn="আরো আইটেম যোগ করুন" data-en="Add More Item">আরো আইটেম যোগ করুন</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1" data-bn="উপ-মোট (Subtotal)" data-en="Subtotal">উপ-মোট (Subtotal)</label>
+                            <input type="number" id="inv-subtotal" readonly value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1" data-bn="ডিসকাউন্ট / ছাড়" data-en="Discount">ডিসকাউন্ট / ছাড়</label>
+                            <input type="number" id="inv-discount" value="0" oninput="calculateInvoiceTotals()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-amber-400 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1" data-bn="অগ্রীম জমা" data-en="Advance Paid">অগ্রীম জমা</label>
+                            <input type="number" id="inv-advance" value="0" oninput="calculateInvoiceTotals()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-emerald-400 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1" data-bn="মোট বকেয়া" data-en="Due Amount">মোট বকেয়া</label>
+                            <input type="number" id="inv-due" readonly value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-rose-400">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-700 pt-2.5 flex justify-between items-center">
+                        <span class="text-xs md:text-sm font-bold text-slate-300" data-bn="সর্বমোট প্রদেয় বিল:" data-en="Grand Total Payable:">সর্বমোট প্রদেয় বিল:</span>
+                        <span id="inv-net-total-display" class="text-xl font-bold text-emerald-400">৳ 0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-700 flex justify-end gap-3 bg-slate-900/80">
+                <button onclick="closeInvoiceModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs md:text-sm px-4 py-2 rounded-lg transition">
+                    <span data-bn="বাতিল" data-en="Cancel">বাতিল</span>
+                </button>
+                <button onclick="printInvoice()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-emerald-600/30">
+                    <i class="fa-solid fa-print"></i> <span data-bn="প্রিন্ট করুন" data-en="Print Invoice">প্রিন্ট করুন</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= EDITABLE PROFILE & SLEEP SETTINGS MODAL ================= -->
+    <div id="profile-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md overflow-hidden relative shadow-2xl my-auto">
+            <button onclick="toggleProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <div class="bg-blue-600/20 p-6 text-center border-b border-slate-700 relative">
+                <div class="relative w-24 h-24 mx-auto mb-3">
+                    <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-blue-500/30 border-2 border-blue-400 overflow-hidden" id="prof-avatar-container">
+                        <span id="prof-avatar">U</span>
+                        <img id="prof-avatar-img" class="w-full h-full object-cover hidden" alt="Profile Picture">
+                    </div>
+                    <label for="prof-pic-input" class="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-full cursor-pointer shadow border border-slate-700 transition" title="Change Picture">
+                        <i class="fa-solid fa-camera text-xs"></i>
+                    </label>
+                    <input type="file" id="prof-pic-input" accept="image/*" class="hidden" onchange="handleProfilePicUpload(event)">
+                </div>
+
+                <h3 id="prof-name" class="text-xl font-bold text-white">User Name</h3>
+                <p class="text-xs text-blue-400 font-semibold uppercase tracking-wider">Computer Operator</p>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs md:text-sm max-h-[60vh] overflow-y-auto">
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-blue-400"></i> প্রোফাইল এডিট করুন
+                    </h4>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">পূর্ণ নাম</label>
+                        <input type="text" id="edit-prof-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">ফোন নম্বর</label>
+                        <input type="text" id="edit-prof-phone" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button onclick="saveProfileInfo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition shadow">
+                        তথ্য পরিবর্তন করুন
+                    </button>
+                </div>
+
+                <hr class="border-slate-700 my-2">
+
+                <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700">
+                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> স্লিপ মোড ও নিরাপত্তা পিন
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">টাইমার (মিনিট)</label>
+                            <input type="number" id="sleep-time-input" placeholder="যেমন: 5" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">সিকিউরিটি পিন (PIN)</label>
+                            <input type="password" id="sleep-pin-setting" maxlength="6" placeholder="4 digit" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="saveSleepSettings()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold py-2 rounded-lg transition text-xs">
+                            সেটিংস সেভ করুন
+                        </button>
+                        <button onclick="triggerSleepNow()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition text-xs" title="এখনই স্লিপ মোড চালু করুন">
+                            <i class="fa-solid fa-power-off"></i>
+                        </button>
+                    </div>
+                    <p id="sleep-status-text" class="text-[10px] text-emerald-400 font-medium text-center hidden"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PRINTABLE INVOICE ================= -->
+    <div id="printable-invoice-container" class="hidden">
+        <div class="p-8 max-w-3xl mx-auto watermark-container min-h-[900px] flex flex-col justify-between">
+            <div class="watermark-bg">
+                <svg width="350" height="350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-blue-900">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+            </div>
+
+            <div class="relative z-10 space-y-6">
+                <div class="flex justify-between items-start border-b-2 border-blue-900 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow">
+                            <i class="fa-solid fa-desktop text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-black text-blue-950 tracking-wider">SUMON COMPUTER</h1>
+                            <p class="text-xs text-gray-700 font-semibold">Khan Trade Center, Janata Bank More, Faridpur</p>
+                            <p class="text-xs text-gray-700">মোবাইল: 01518-411872, 01571-524152 | ইমেইল: 100pc.net@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block bg-blue-900 text-white text-xs font-bold px-3 py-1 rounded mb-1">INVOICE</span>
+                        <p class="text-xs text-gray-600">তারিখ: <span id="print-date" class="font-semibold text-black"></span></p>
+                        <p class="text-xs text-gray-600">আইডি: <span id="print-inv-id" class="font-semibold text-black"></span></p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 flex justify-between text-xs md:text-sm">
+                    <div>
+                        <p class="text-gray-600">গ্রাহকের নাম: <strong id="print-cust-name" class="text-black"></strong></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">মোবাইল নম্বর: <strong id="print-cust-phone" class="text-black"></strong></p>
+                    </div>
+                </div>
+
+                <table class="w-full border-collapse text-xs md:text-sm">
+                    <thead>
+                        <tr class="bg-blue-900 text-white">
+                            <th class="p-2.5 text-left border border-blue-900">#</th>
+                            <th class="p-2.5 text-left border border-blue-900">কাজের বিবরণ</th>
+                            <th class="p-2.5 text-right border border-blue-900">মূল্য (টাকা)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="print-items-body" class="divide-y divide-gray-300"></tbody>
+                </table>
+
+                <div class="flex justify-end pt-2">
+                    <div class="w-64 space-y-1.5 text-xs md:text-sm">
+                        <div class="flex justify-between py-1 border-b border-gray-200">
+                            <span class="text-gray-600">উপ-মোট (Subtotal):</span>
+                            <span id="print-subtotal" class="font-semibold">৳ 0.00</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-gray-200 text-amber-700">
+                            <span>ডিসকাউন্ট (Discount):</span>
+                            <span id="print-discount" class="font-semibold">- ৳ 0.00</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-gray-200 text-emerald-700">
+                            <span>অগ্রীম জমা (Advance):</span>
+                            <span id="print-advance" class="font-semibold">- ৳ 0.00</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b-2 border-blue-900 text-blue-950 font-bold text-base">
+                            <span>সর্বমোট প্রদেয়:</span>
+                            <span id="print-net-total">৳ 0.00</span>
+                        </div>
+                        <div class="flex justify-between py-1 text-rose-700 font-semibold">
+                            <span>অবশিষ্ট বকেয়া (Due):</span>
+                            <span id="print-due">৳ 0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10 pt-16">
+                <div class="flex justify-between items-end text-xs text-gray-700">
+                    <div class="text-center border-t border-gray-400 pt-1 w-40">গ্রাহকের স্বাক্ষর</div>
+                    <div class="text-center border-t border-gray-400 pt-1 w-48">
+                        অপারেটর স্বাক্ষর (<span id="print-operator-name">Operator</span>)
+                    </div>
+                </div>
+                <p class="text-center text-[10px] text-gray-500 mt-6">Sumon Computer - আপনার সকল কম্পিউটার সেবা প্রদানে আমরা প্রতিশ্রুতিবদ্ধ। ধন্যবাদ!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FIREBASE & APP SCRIPT ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged,
+            updateProfile,
+            setPersistence,
+            browserSessionPersistence
+        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            onValue,
+            get,
+            child
+        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzNKa1Xd4Ve8_iG9IPCsOqpO01Vg2xSHE",
+            authDomain: "diet-7d4ba.firebaseapp.com",
+            databaseURL: "https://diet-7d4ba-default-rtdb.firebaseio.com",
+            projectId: "diet-7d4ba",
+            storageBucket: "diet-7d4ba.firebasestorage.app",
+            messagingSenderId: "191983322357",
+            appId: "1:191983322357:web:5c3c5bfa041abb508eb1bc",
+            measurementId: "G-DLPB90D6HM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Auto Logout Session Persistence
+        setPersistence(auth, browserSessionPersistence);
+
+        // Global State
+        window.currentLang = 'bn';
+        window.currentUserData = null;
+        window.records = [];
+        window.customers = [];
+        window.editingRecordId = null;
+        window.sleepTimer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const ym = today.toISOString().slice(0, 7);
+            document.getElementById('selected-month').value = ym;
+            document.getElementById('cust-date-input').value = today.toISOString().split('T')[0];
+            window.initInvoiceModalRows();
+        });
+
+        // Auth Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const dbRef = ref(db);
+                try {
+                    const snapshot = await get(child(dbRef, `users/${user.uid}/profile`));
+                    if (snapshot.exists()) {
+                        window.currentUserData = snapshot.val();
+                    } else {
+                        window.currentUserData = {
+                            name: user.displayName || 'Operator',
+                            email: user.email,
+                            phone: 'N/A',
+                            photoUrl: '',
+                            sleepMinutes: 0,
+                            sleepPin: ''
+                        };
+                    }
+                } catch (e) {
+                    window.currentUserData = {
+                        name: user.displayName || 'Operator',
+                        email: user.email,
+                        phone: 'N/A',
+                        photoUrl: '',
+                        sleepMinutes: 0,
+                        sleepPin: ''
+                    };
+                }
+
+                updateUserUI();
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+
+                // Realtime Records Listener
+                onValue(ref(db, `users/${user.uid}/records`), (snapshot) => {
+                    const data = snapshot.val();
+                    window.records = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+                    window.renderDailyRecords();
+                });
+
+                // Realtime Customers Listener
+                onValue(ref(db, `users/${user.uid}/customers`), (snapshot) => {
+                    const data = snapshot.val();
+                    window.customers = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+                    window.renderCustomerList();
+                });
+
+                setupSleepTimer();
+
+            } else {
+                window.currentUserData = null;
+                window.records = [];
+                window.customers = [];
+                clearTimeout(window.sleepTimer);
+                document.getElementById('app-screen').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
+            }
+        });
+
+        window.handleLogin = async function(e) {
+            e.preventDefault();
+            showAuthError('');
+            const email = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('login-btn');
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing...`;
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                showAuthError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span data-bn="প্রবেশ করুন" data-en="Log In">${window.currentLang === 'bn' ? 'প্রবেশ করুন' : 'Log In'}</span>`;
+            }
+        };
+
+        window.handleSignup = async function(e) {
+            e.preventDefault();
+            showAuthError('');
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const phone = document.getElementById('signup-phone').value;
+            const pass = document.getElementById('signup-pass').value;
+            const btn = document.getElementById('signup-btn');
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Creating...`;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: name });
+
+                const profileData = { name, email, phone, photoUrl: '', sleepMinutes: 0, sleepPin: '' };
+                await set(ref(db, `users/${user.uid}/profile`), profileData);
+
+            } catch (err) {
+                showAuthError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span data-bn="অ্যাকাউন্ট তৈরি করুন" data-en="Create Account">${window.currentLang === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account'}</span>`;
+            }
+        };
+
+        window.logout = function() {
+            signOut(auth);
+        };
+
+        function showAuthError(msg) {
+            const box = document.getElementById('auth-error');
+            if (msg) {
+                box.innerText = msg;
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        // PROFILE & SLEEP HANDLERS
+        function updateUserUI() {
+            if (!window.currentUserData) return;
+            const name = window.currentUserData.name || 'User';
+            const phone = window.currentUserData.phone || '';
+            const photoUrl = window.currentUserData.photoUrl || '';
+
+            document.getElementById('user-display-name').innerText = name;
+            document.getElementById('prof-name').innerText = name;
+            document.getElementById('edit-prof-name').value = name;
+            document.getElementById('edit-prof-phone').value = phone;
+            document.getElementById('print-operator-name').innerText = name;
+
+            const avatarBadge = document.getElementById('user-avatar-badge-container');
+            const profAvatar = document.getElementById('prof-avatar');
+            const profAvatarImg = document.getElementById('prof-avatar-img');
+
+            if (photoUrl) {
+                avatarBadge.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+                profAvatar.classList.add('hidden');
+                profAvatarImg.src = photoUrl;
+                profAvatarImg.classList.remove('hidden');
+            } else {
+                avatarBadge.innerHTML = `<span id="user-avatar-badge">${name.charAt(0).toUpperCase()}</span>`;
+                profAvatar.innerText = name.charAt(0).toUpperCase();
+                profAvatar.classList.remove('hidden');
+                profAvatarImg.classList.add('hidden');
+            }
+
+            if (window.currentUserData.sleepMinutes) {
+                document.getElementById('sleep-time-input').value = window.currentUserData.sleepMinutes;
+            }
+            if (window.currentUserData.sleepPin) {
+                document.getElementById('sleep-pin-setting').value = window.currentUserData.sleepPin;
+            }
+        }
+
+        window.saveProfileInfo = async function() {
+            if (!auth.currentUser) return;
+            const name = document.getElementById('edit-prof-name').value.trim();
+            const phone = document.getElementById('edit-prof-phone').value.trim();
+
+            if (!name) {
+                alert('অনুগ্রহ করে নাম প্রদান করুন।');
+                return;
+            }
+
+            window.currentUserData.name = name;
+            window.currentUserData.phone = phone;
+
+            await set(ref(db, `users/${auth.currentUser.uid}/profile`), window.currentUserData);
+            updateUserUI();
+            alert('প্রোফাইল তথ্য আপডেট হয়েছে!');
+        };
+
+        window.handleProfilePicUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                window.currentUserData.photoUrl = e.target.result;
+                if (auth.currentUser) {
+                    await set(ref(db, `users/${auth.currentUser.uid}/profile`), window.currentUserData);
+                    updateUserUI();
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.saveSleepSettings = async function() {
+            if (!auth.currentUser) return;
+            const minutes = parseInt(document.getElementById('sleep-time-input').value) || 0;
+            const pin = document.getElementById('sleep-pin-setting').value.trim();
+
+            if (minutes > 0 && !pin) {
+                alert('স্লিপ মোড অন করার জন্য সিকিউরিটি পিন (PIN) সেট করা বাধ্যতামূলক!');
+                return;
+            }
+
+            window.currentUserData.sleepMinutes = minutes;
+            window.currentUserData.sleepPin = pin;
+
+            await set(ref(db, `users/${auth.currentUser.uid}/profile`), window.currentUserData);
+            
+            const statusText = document.getElementById('sleep-status-text');
+            if (minutes > 0) {
+                statusText.innerText = `${minutes} মিনিট পর অটো লক সক্রিয় রয়েছে।`;
+            } else {
+                statusText.innerText = `স্লিপ মোড বন্ধ করা হয়েছে।`;
+            }
+            statusText.classList.remove('hidden');
+
+            setupSleepTimer();
+        };
+
+        function setupSleepTimer() {
+            clearTimeout(window.sleepTimer);
+            const minutes = window.currentUserData?.sleepMinutes || 0;
+            if (minutes > 0) {
+                const timeMs = minutes * 60 * 1000;
+                window.sleepTimer = setTimeout(() => {
+                    triggerSleepLock();
+                }, timeMs);
+            }
+        }
+
+        window.triggerSleepNow = function() {
+            if (!window.currentUserData?.sleepPin) {
+                alert('স্লিপ মোড চালু করতে প্রথমে একটি পিন (PIN) সেট করুন।');
+                return;
+            }
+            toggleProfileModal();
+            triggerSleepLock();
+        };
+
+        function triggerSleepLock() {
+            document.getElementById('sleep-lock-screen').classList.remove('hidden');
+            document.getElementById('sleep-pin-input').value = '';
+            document.getElementById('sleep-error').classList.add('hidden');
+        }
+
+        window.unlockSleepMode = function() {
+            const enteredPin = document.getElementById('sleep-pin-input').value.trim();
+            const correctPin = window.currentUserData?.sleepPin;
+
+            if (enteredPin === correctPin) {
+                document.getElementById('sleep-lock-screen').classList.add('hidden');
+                setupSleepTimer();
+            } else {
+                const err = document.getElementById('sleep-error');
+                err.innerText = 'ভুল পিন দিয়েছেন! পুনরায় চেষ্টা করুন।';
+                err.classList.remove('hidden');
+            }
+        };
+
+        async function syncDataToFirebase() {
+            if (auth.currentUser) {
+                await set(ref(db, `users/${auth.currentUser.uid}/records`), window.records);
+            }
+        }
+
+        async function syncCustomersToFirebase() {
+            if (auth.currentUser) {
+                await set(ref(db, `users/${auth.currentUser.uid}/customers`), window.customers);
+            }
+        }
+
+        // ================= CUSTOMER MANAGEMENT =================
+        window.openCustomerModal = function() {
+            document.getElementById('customer-modal').classList.remove('hidden');
+            window.renderCustomerList();
+        };
+
+        window.closeCustomerModal = function() {
+            document.getElementById('customer-modal').classList.add('hidden');
+        };
+
+        window.handleSaveCustomer = async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('cust-name-input').value.trim();
+            const phone = document.getElementById('cust-phone-input').value.trim();
+            const type = document.getElementById('cust-type-input').value;
+            const date = document.getElementById('cust-date-input').value;
+            const photoInput = document.getElementById('cust-photo-input');
+
+            // Generate Automatic ID
+            const customerId = 'CUST-' + Math.floor(1000 + Math.random() * 9000);
+
+            let photoBase64 = '';
+
+            if (photoInput.files && photoInput.files[0]) {
+                const file = photoInput.files[0];
+                
+                // Max 100 KB Check (100 * 1024 bytes)
+                if (file.size > 100 * 1024) {
+                    alert('ছবির আকার সর্বোচ্চ 100 KB হতে পারবে! আপনার ছবি ' + (file.size / 1024).toFixed(1) + ' KB.');
+                    return;
+                }
+
+                photoBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const newCust = {
+                id: customerId,
+                name,
+                phone,
+                type,
+                joinDate: date,
+                photo: photoBase64
+            };
+
+            window.customers.push(newCust);
+            await syncCustomersToFirebase();
+
+            // Reset Form
+            document.getElementById('cust-name-input').value = '';
+            document.getElementById('cust-phone-input').value = '';
+            document.getElementById('cust-photo-input').value = '';
+            
+            alert('কাস্টমার ডেটা সফলভাবে সেভ হয়েছে!');
+        };
+
+        window.renderCustomerList = function() {
+            const filterType = document.getElementById('cust-filter-type').value;
+            const tbody = document.getElementById('customer-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let list = window.customers;
+            if (filterType !== 'All') {
+                list = list.filter(c => c.type === filterType);
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">কোন কাস্টমার ডেটা পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            list.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/40 transition border-b border-slate-700/40";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-indigo-400 font-bold">${c.id}</td>
+                    <td class="p-3 font-semibold text-white">${c.name}</td>
+                    <td class="p-3">${c.phone}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.type === 'VIP' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : c.type === 'Corporate' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-slate-700 text-slate-300'}">
+                            ${c.type}
+                        </span>
+                    </td>
+                    <td class="p-3">${c.joinDate}</td>
+                    <td class="p-3 text-center">
+                        ${c.photo ? `
+                            <button onclick="viewCustomerPhoto('${c.photo}', '${c.name}')" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded transition flex items-center gap-1 mx-auto">
+                                <i class="fa-solid fa-image"></i> ভিউ ফটো
+                            </button>
+                        ` : `<span class="text-slate-500 text-[11px]">নাই</span>`}
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteCustomer('${c.id}')" class="text-slate-500 hover:text-rose-400 transition" title="Delete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        window.deleteCustomer = async function(id) {
+            if (confirm('আপনি কি এই কাস্টমারের ডেটা মুছে ফেলতে চান?')) {
+                window.customers = window.customers.filter(c => c.id !== id);
+                await syncCustomersToFirebase();
+            }
+        };
+
+        window.viewCustomerPhoto = function(photoBase64, name) {
+            document.getElementById('popup-photo-img').src = photoBase64;
+            document.getElementById('popup-photo-name').innerText = name;
+            document.getElementById('photo-view-modal').classList.remove('hidden');
+        };
+
+        window.closePhotoModal = function() {
+            document.getElementById('photo-view-modal').classList.add('hidden');
+        };
+
+        // EXPORT CUSTOMERS TO EXCEL
+        window.exportCustomersToExcel = function() {
+            if (window.customers.length === 0) {
+                alert('এক্সপোর্ট করার মত কোন কাস্টমার ডেটা নেই!');
+                return;
+            }
+
+            const exportData = window.customers.map(c => ({
+                "Customer ID": c.id,
+                "Customer Name": c.name,
+                "Mobile Number": c.phone,
+                "Customer Type": c.type,
+                "Joining Date": c.joinDate
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+
+            XLSX.writeFile(workbook, "Customer_Data_SumonComputer.xlsx");
+        };
+
+        // UI HELPERS
+        window.toggleLanguage = function() {
+            window.currentLang = window.currentLang === 'bn' ? 'en' : 'bn';
+            document.getElementById('lang-btn-auth').innerText = window.currentLang === 'bn' ? 'English' : 'বাংলা';
+            document.getElementById('lang-btn-app').innerText = window.currentLang === 'bn' ? 'English' : 'বাংলা';
+            window.applyLanguage();
+        };
+
+        window.applyLanguage = function() {
+            document.querySelectorAll('[data-bn]').forEach(el => {
+                if (window.currentLang === 'bn') {
+                    el.innerText = el.getAttribute('data-bn');
+                } else if (el.getAttribute('data-en')) {
+                    el.innerText = el.getAttribute('data-en');
+                }
+            });
+            window.renderDailyRecords();
+        };
+
+        window.switchAuthTab = function(tab) {
+            showAuthError('');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const tabLogin = document.getElementById('tab-login');
+            const tabSignup = document.getElementById('tab-signup');
+            const subtitle = document.getElementById('auth-subtitle');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                tabLogin.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 transition";
+                tabSignup.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+                subtitle.innerText = window.currentLang === 'bn' ? "হিসাব ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন" : "Sign in to account management system";
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                tabSignup.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400 transition";
+                tabLogin.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+                subtitle.innerText = window.currentLang === 'bn' ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "Create a new account";
+            }
+        };
+
+        window.toggleProfileModal = function() {
+            document.getElementById('profile-modal').classList.toggle('hidden');
+        };
+
+        window.onMonthChange = function() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            window.renderDailyRecords();
+        };
+
+        window.applyFilters = function() {
+            window.renderDailyRecords();
+        };
+
+        window.clearDateFilter = function() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            window.renderDailyRecords();
+        };
+
+        window.renderDailyRecords = function() {
+            const selectedMonth = document.getElementById('selected-month').value;
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            
+            const tbody = document.getElementById('daily-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let filteredRecords = window.records.filter(r => r && r.date && r.date.startsWith(selectedMonth));
+
+            if (startDate && endDate) {
+                filteredRecords = window.records.filter(r => r && r.date >= startDate && r.date <= endDate);
+            } else if (startDate) {
+                filteredRecords = window.records.filter(r => r && r.date >= startDate);
+            } else if (endDate) {
+                filteredRecords = window.records.filter(r => r && r.date <= endDate);
+            }
+
+            filteredRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let monthTotal = 0;
+            let monthAdvance = 0;
+
+            filteredRecords.forEach((rec) => {
+                const jobs = rec.jobs || Array(25).fill({ desc: '', amount: 0 });
+                const dailyTotal = jobs.reduce((sum, j) => sum + (parseFloat(j.amount) || 0), 0);
+                
+                const myShare = dailyTotal * 0.5;
+                const ownerShare = dailyTotal * 0.5;
+                const ownerDue = ownerShare - (parseFloat(rec.advance) || 0);
+
+                monthTotal += dailyTotal;
+                monthAdvance += (parseFloat(rec.advance) || 0);
+
+                const filledJobsCount = jobs.filter(j => (parseFloat(j.amount) || 0) > 0 || (j.desc && j.desc.trim() !== '')).length;
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-700/50 border-b border-slate-700/60 transition";
+                row.innerHTML = `
+                    <td class="p-3">
+                        <input type="date" value="${rec.date}" onchange="updateRecord(${rec.id}, 'date', this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </td>
+                    <td class="p-3">
+                        <button onclick="openJobModal(${rec.id})" class="text-xs bg-slate-900 border border-slate-700 hover:border-blue-500 px-3 py-1.5 rounded-lg text-left flex items-center justify-between w-full max-w-md group transition">
+                            <span class="text-slate-300 group-hover:text-blue-400">
+                                <i class="fa-solid fa-list-ol mr-1.5 text-blue-400"></i>
+                                ${filledJobsCount} ${window.currentLang === 'bn' ? 'টি কাজ অন্তর্ভুক্ত' : 'Jobs Entered'}
+                            </span>
+                            <span class="text-[10px] bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">
+                                ${window.currentLang === 'bn' ? 'এডিট করুন (২৫ ঘর)' : 'Edit (25 Fields)'}
+                            </span>
+                        </button>
+                    </td>
+                    <td class="p-3 text-right font-medium text-slate-100">৳ ${dailyTotal.toFixed(2)}</td>
+                    <td class="p-3 text-right text-emerald-400 font-medium">৳ ${myShare.toFixed(2)}</td>
+                    <td class="p-3 text-right">
+                        <input type="number" placeholder="0" value="${rec.advance || ''}" onchange="updateRecord(${rec.id}, 'advance', parseFloat(this.value) || 0)" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-right text-amber-400 focus:outline-none focus:border-blue-500">
+                    </td>
+                    <td class="p-3 text-right text-purple-400 font-medium">৳ ${ownerDue.toFixed(2)}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteRecord(${rec.id})" class="text-slate-500 hover:text-rose-400 transition" title="Delete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            const myShareTotal = monthTotal * 0.5;
+            const ownerShareTotal = monthTotal * 0.5;
+            const ownerDueTotal = ownerShareTotal - monthAdvance;
+
+            document.getElementById('month-total').innerText = `৳ ${monthTotal.toFixed(2)}`;
+            document.getElementById('my-share').innerText = `৳ ${myShareTotal.toFixed(2)}`;
+            document.getElementById('total-advance').innerText = `৳ ${monthAdvance.toFixed(2)}`;
+            document.getElementById('owner-due').innerText = `৳ ${ownerDueTotal.toFixed(2)}`;
+
+            const fiscalTotal = window.records.reduce((acc, curr) => {
+                if (!curr) return acc;
+                const jobs = curr.jobs || [];
+                const dailySum = jobs.reduce((s, j) => s + (parseFloat(j.amount) || 0), 0);
+                return acc + dailySum;
+            }, 0);
+            document.getElementById('fiscal-total').innerText = `৳ ${fiscalTotal.toFixed(2)}`;
+        };
+
+        window.addNewRow = function() {
+            const selectedMonth = document.getElementById('selected-month').value;
+            const today = new Date().toISOString().split('T')[0];
+            const dateToUse = today.startsWith(selectedMonth) ? today : `${selectedMonth}-01`;
+
+            const emptyJobs = Array.from({ length: 25 }, () => ({ desc: '', amount: '' }));
+
+            const newRec = {
+                id: Date.now(),
+                date: dateToUse,
+                jobs: emptyJobs,
+                advance: 0
+            };
+
+            window.records.push(newRec);
+            syncDataToFirebase();
+        };
+
+        window.updateRecord = function(id, field, value) {
+            const index = window.records.findIndex(r => r && r.id === id);
+            if (index !== -1) {
+                window.records[index][field] = value;
+                syncDataToFirebase();
+            }
+        };
+
+        window.deleteRecord = function(id) {
+            if (confirm(window.currentLang === 'bn' ? 'আপনি কি সত্যিই এই দিনের এন্ট্রি মুছতে চান?' : 'Are you sure you want to delete this record?')) {
+                window.records = window.records.filter(r => r && r.id !== id);
+                syncDataToFirebase();
+            }
+        };
+
+        // JOB MODAL
+        window.openJobModal = function(recordId) {
+            window.editingRecordId = recordId;
+            const record = window.records.find(r => r && r.id === recordId);
+            if (!record) return;
+
+            document.getElementById('modal-date-display').innerText = record.date;
+            const container = document.getElementById('jobs-grid');
+            container.innerHTML = '';
+
+            let jobs = record.jobs || [];
+            while (jobs.length < 25) {
+                jobs.push({ desc: '', amount: '' });
+            }
+
+            jobs.forEach((job, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-700/80";
+                div.innerHTML = `
+                    <span class="text-[11px] font-bold text-slate-500 w-5 text-right">${idx + 1}.</span>
+                    <input type="text" placeholder="${window.currentLang === 'bn' ? 'কাজের বিবরণ ' + (idx + 1) : 'Job ' + (idx + 1) + ' description'}" 
+                        value="${job.desc || ''}" 
+                        id="job-desc-${idx}"
+                        class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white flex-1 focus:outline-none focus:border-blue-500">
+                    <input type="number" placeholder="৳ 0" 
+                        value="${job.amount || ''}" 
+                        id="job-amt-${idx}"
+                        oninput="calcModalTotal()"
+                        class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white w-20 text-right focus:outline-none focus:border-blue-500">
+                `;
+                container.appendChild(div);
+            });
+
+            window.calcModalTotal();
+            document.getElementById('job-modal').classList.remove('hidden');
+        };
+
+        window.calcModalTotal = function() {
+            let total = 0;
+            for (let i = 0; i < 25; i++) {
+                const amtEl = document.getElementById(`job-amt-${i}`);
+                if (amtEl) {
+                    total += parseFloat(amtEl.value) || 0;
+                }
+            }
+            document.getElementById('modal-calculated-total').innerText = `৳ ${total.toFixed(2)}`;
+        };
+
+        window.saveJobModalData = function() {
+            if (!window.editingRecordId) return;
+            const index = window.records.findIndex(r => r && r.id === window.editingRecordId);
+            if (index !== -1) {
+                const updatedJobs = [];
+                for (let i = 0; i < 25; i++) {
+                    const desc = document.getElementById(`job-desc-${i}`).value;
+                    const amount = document.getElementById(`job-amt-${i}`).value;
+                    updatedJobs.push({ desc, amount });
+                }
+                window.records[index].jobs = updatedJobs;
+                syncDataToFirebase();
+            }
+            window.closeJobModal();
+        };
+
+        window.closeJobModal = function() {
+            document.getElementById('job-modal').classList.add('hidden');
+            window.editingRecordId = null;
+        };
+
+        // INVOICE MODAL
+        window.openInvoiceModal = function() {
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        };
+
+        window.closeInvoiceModal = function() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+        };
+
+        window.initInvoiceModalRows = function() {
+            const container = document.getElementById('invoice-items');
+            if (!container) return;
+            container.innerHTML = '';
+            window.addInvoiceItemRow();
+            window.addInvoiceItemRow();
+        };
+
+        window.addInvoiceItemRow = function() {
+            const container = document.getElementById('invoice-items');
+            const row = document.createElement('div');
+            row.className = "flex gap-2 items-center";
+            row.innerHTML = `
+                <input type="text" placeholder="${window.currentLang === 'bn' ? 'কাজের বিবরণ (যেমন: অনলাইন আবেদন, প্রিন্ট...)' : 'Work description'}" class="inv-desc bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white flex-1 focus:outline-none focus:border-blue-500">
+                <input type="number" placeholder="মূল্য ৳" oninput="calculateInvoiceTotals()" class="inv-amount bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white w-28 text-right focus:outline-none focus:border-blue-500">
+                <button onclick="this.parentElement.remove(); calculateInvoiceTotals();" class="text-slate-500 hover:text-rose-400 px-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        };
+
+        window.calculateInvoiceTotals = function() {
+            const amounts = document.querySelectorAll('.inv-amount');
+            let subtotal = 0;
+            amounts.forEach(inp => subtotal += parseFloat(inp.value) || 0);
+
+            const discount = parseFloat(document.getElementById('inv-discount').value) || 0;
+            const advance = parseFloat(document.getElementById('inv-advance').value) || 0;
+
+            const netTotal = Math.max(0, subtotal - discount);
+            const due = Math.max(0, netTotal - advance);
+
+            document.getElementById('inv-subtotal').value = subtotal;
+            document.getElementById('inv-net-total-display').innerText = `৳ ${netTotal.toFixed(2)}`;
+            document.getElementById('inv-due').value = due;
+
+            return { subtotal, discount, advance, netTotal, due };
+        };
+
+        window.printInvoice = function() {
+            const totals = window.calculateInvoiceTotals();
+            const dateStr = new Date().toLocaleDateString('bn-BD');
+            const invoiceId = 'SC-' + Math.floor(100000 + Math.random() * 900000);
+
+            document.getElementById('print-date').innerText = dateStr;
+            document.getElementById('print-inv-id').innerText = invoiceId;
+            document.getElementById('print-cust-name').innerText = document.getElementById('inv-customer-name').value || 'N/A';
+            document.getElementById('print-cust-phone').innerText = document.getElementById('inv-customer-phone').value || 'N/A';
+
+            const descs = document.querySelectorAll('.inv-desc');
+            const amounts = document.querySelectorAll('.inv-amount');
+            const tbody = document.getElementById('print-items-body');
+            tbody.innerHTML = '';
+
+            let itemCount = 0;
+            descs.forEach((d, i) => {
+                const val = parseFloat(amounts[i].value) || 0;
+                if (d.value.trim() !== '' || val > 0) {
+                    itemCount++;
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-200";
+                    tr.innerHTML = `
+                        <td class="p-2 border border-gray-200 text-center">${itemCount}</td>
+                        <td class="p-2 border border-gray-200">${d.value || 'সেবা/কাজ'}</td>
+                        <td class="p-2 border border-gray-200 text-right">৳ ${val.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            document.getElementById('print-subtotal').innerText = `৳ ${totals.subtotal.toFixed(2)}`;
+            document.getElementById('print-discount').innerText = `- ৳ ${totals.discount.toFixed(2)}`;
+            document.getElementById('print-advance').innerText = `- ৳ ${totals.advance.toFixed(2)}`;
+            document.getElementById('print-net-total').innerText = `৳ ${totals.netTotal.toFixed(2)}`;
+            document.getElementById('print-due').innerText = `৳ ${totals.due.toFixed(2)}`;
+
+            const printContent = document.getElementById('printable-invoice-container');
+            printContent.classList.remove('hidden');
+            window.print();
+            printContent.classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
