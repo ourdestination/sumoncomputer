@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,8 +23,12 @@
             -moz-appearance: textfield;
         }
 
-        /* Printable Invoice Styling */
+        /* Printable Invoice Styling - A4 Landscape Dual Layout */
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 5mm;
+            }
             body * { visibility: hidden !important; }
             #printable-invoice-container, #printable-invoice-container * { 
                 visibility: visible !important; 
@@ -34,86 +38,74 @@
                 left: 0 !important; 
                 top: 0 !important; 
                 width: 100% !important; 
-                background: white !important;
-                color: black !important;
+                background: #ffffff !important;
+                color: #000000 !important;
                 display: block !important;
+            }
+            #printable-invoice-container * {
+                background: transparent !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
             }
             .no-print { display: none !important; }
         }
 
-        /* Watermark Styling */
-        .watermark-container {
-            position: relative;
-            overflow: hidden;
-        }
-        .watermark-bg {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.06;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* 40mm x 50mm Photo Box */
         .photo-40x50 {
             width: 151px;
             height: 189px;
             object-fit: cover;
         }
+
+        /* Clean QR Code without outer borders */
+        .qrcode-container img, .qrcode-container canvas {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- ================= TOP SCROLLING NOTICE (MARQUEE) ================= -->
+    <!-- TOP SCROLLING NOTICE -->
     <div class="bg-blue-950 text-blue-200 border-b border-blue-800 text-xs py-1.5 overflow-hidden whitespace-nowrap z-50">
         <marquee scrollamount="4" behavior="scroll" direction="left" class="font-medium">
             ***This Website Made by Hredoy Roy, Phone: +088 01518 411872; +880 1345 409887, Email: 100pc.net@gmail.com, Address: Krishnabila, Gangnalia-7610, Magura Sadar, Magura***
         </marquee>
     </div>
 
-    <!-- ================= SLEEP LOCK SCREEN ================= -->
+    <!-- SLEEP LOCK SCREEN -->
     <div id="sleep-lock-screen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden flex items-center justify-center p-4 z-[100]">
         <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 w-full max-w-sm text-center shadow-2xl space-y-4">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30 text-2xl">
                 <i class="fa-solid fa-moon"></i>
             </div>
-            <h2 class="text-xl font-bold text-white">সিস্টেম স্লিপ মোডে আছে</h2>
-            <p class="text-xs text-slate-400">আনলক করতে আপনার সিকিউরিটি পিন (PIN) দিন</p>
-            
+            <h2 class="text-xl font-bold text-white">System is in Sleep Mode</h2>
+            <p class="text-xs text-slate-400">Enter Security PIN to Unlock</p>
             <input type="password" id="sleep-pin-input" maxlength="6" placeholder="PIN" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 text-center text-xl font-bold tracking-widest text-white focus:outline-none focus:border-amber-500">
-            
             <button onclick="unlockSleepMode()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg transition shadow-lg shadow-amber-500/20">
-                আনলক করুন
+                Unlock
             </button>
             <p id="sleep-error" class="text-xs text-rose-400 hidden"></p>
         </div>
     </div>
 
-    <!-- ================= AUTH SCREEN ================= -->
+    <!-- AUTH SCREEN -->
     <div id="auth-screen" class="flex items-center justify-center min-h-screen p-4 bg-slate-950">
         <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md relative">
-            
-            <button onclick="toggleLanguage()" class="absolute top-4 right-4 bg-slate-700 hover:bg-slate-600 text-xs text-blue-300 font-semibold px-3 py-1.5 rounded-full border border-slate-600 transition">
-                <i class="fa-solid fa-globe mr-1"></i><span id="lang-btn-auth">English</span>
-            </button>
-
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-3 shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-desktop text-2xl text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white tracking-wide">SUMON COMPUTER</h1>
-                <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">হিসাব ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন</p>
+                <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">Sign in to Management System</p>
             </div>
 
             <div class="flex border-b border-slate-700 mb-6">
                 <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 transition">
-                    <span data-bn="লগইন" data-en="Login">লগইন</span>
+                    <span>Login</span>
                 </button>
                 <button id="tab-signup" onclick="switchAuthTab('signup')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
-                    <span data-bn="সাইন আপ" data-en="Sign Up">সাইন আপ</span>
+                    <span>Sign Up</span>
                 </button>
             </div>
 
@@ -121,51 +113,50 @@
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ইমেইল এড্রেস" data-en="Email Address">ইমেইল এড্রেস</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
                     <div class="relative">
                         <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-500 text-sm"></i>
                         <input type="email" id="login-user" required placeholder="example@mail.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-sm"></i>
                         <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
                 <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
-                    <span data-bn="প্রবেশ করুন" data-en="Log In">প্রবেশ করুন</span>
+                    <span>Log In</span>
                 </button>
             </form>
 
             <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="পূর্ণ নাম" data-en="Full Name">পূর্ণ নাম</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
                     <input type="text" id="signup-name" required placeholder="Hredoy Roy" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ইমেইল এড্রেস" data-en="Email Address">ইমেইল এড্রেস</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
                     <input type="email" id="signup-email" required placeholder="100pc.net@gmail.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
                     <input type="text" id="signup-phone" placeholder="01518-411872" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1" data-bn="নতুন পাসওয়ার্ড" data-en="New Password">নতুন পাসওয়ার্ড</label>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">New Password</label>
                     <input type="password" id="signup-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <button type="submit" id="signup-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
-                    <span data-bn="অ্যাকাউন্ট তৈরি করুন" data-en="Create Account">অ্যাকাউন্ট তৈরি করুন</span>
+                    <span>Create Account</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ================= MAIN DASHBOARD APPLICATION ================= -->
+    <!-- MAIN DASHBOARD APPLICATION -->
     <div id="app-screen" class="hidden min-h-screen flex flex-col">
-        <!-- Top Navigation Bar -->
         <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -173,32 +164,23 @@
                 </div>
                 <div>
                     <h2 class="font-bold text-lg text-white leading-tight">SUMON COMPUTER</h2>
-                    <p class="text-xs text-slate-400" data-bn="কম্পিউটার অপারেটর ড্যাশবোর্ড" data-en="Computer Operator Dashboard">কম্পিউটার অপারেটর ড্যাশবোর্ড</p>
+                    <p class="text-xs text-slate-400">Computer Operator Dashboard</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- Language Switcher -->
-                <button onclick="toggleLanguage()" class="bg-slate-700 hover:bg-slate-600 text-xs text-blue-300 font-semibold px-3 py-2 rounded-lg border border-slate-600 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-globe"></i>
-                    <span id="lang-btn-app">English</span>
-                </button>
-
-                <!-- Invoice Button -->
                 <button onclick="openInvoiceModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-emerald-600/20">
                     <i class="fa-solid fa-file-invoice"></i> 
-                    <span data-bn="ইনভয়েস ম্যানেজমেন্ট" data-en="Invoice Management">ইনভয়েস ম্যানেজমেন্ট</span>
+                    <span>Invoice Management</span>
                 </button>
 
-                <!-- Customer Data Button -->
                 <button onclick="openCustomerModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
                     <i class="fa-solid fa-users"></i> 
-                    <span data-bn="কাস্টমার ডেটা" data-en="Customer Data">কাস্টমার ডেটা</span>
+                    <span>Customer Data</span>
                 </button>
 
                 <div class="h-6 w-px bg-slate-700 mx-1"></div>
 
-                <!-- Profile Trigger -->
                 <button onclick="toggleProfileModal()" class="flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700">
                     <div class="w-7 h-7 bg-blue-500/20 border border-blue-500 rounded-full flex items-center justify-center text-blue-400 font-bold text-xs overflow-hidden" id="user-avatar-badge-container">
                         <span id="user-avatar-badge">U</span>
@@ -212,25 +194,21 @@
             </div>
         </header>
 
-        <!-- Main Dashboard Content -->
         <main class="flex-1 p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
-            
-            <!-- Filter & Range Selector Panel -->
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-4 shadow-lg">
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    
                     <div class="flex flex-wrap items-center gap-2 md:gap-3 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
                         <span class="text-xs font-semibold text-blue-400 flex items-center gap-1">
-                            <i class="fa-solid fa-filter"></i> <span data-bn="ফিল্টার:" data-en="Filter:">ফিল্টার:</span>
+                            <i class="fa-solid fa-filter"></i> <span>Filter:</span>
                         </span>
                         
                         <div class="flex items-center gap-1.5">
-                            <label class="text-xs text-slate-400" data-bn="হতে" data-en="From">হতে</label>
+                            <label class="text-xs text-slate-400">From</label>
                             <input type="date" id="filter-start-date" onchange="applyFilters()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
                         </div>
 
                         <div class="flex items-center gap-1.5">
-                            <label class="text-xs text-slate-400" data-bn="পর্যন্ত" data-en="To">পর্যন্ত</label>
+                            <label class="text-xs text-slate-400">To</label>
                             <input type="date" id="filter-end-date" onchange="applyFilters()" class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
                         </div>
 
@@ -241,16 +219,15 @@
 
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
-                            <label class="text-xs text-slate-400"><i class="fa-regular fa-calendar-days"></i> <span data-bn="মাস:" data-en="Month:">মাস:</span></label>
+                            <label class="text-xs text-slate-400"><i class="fa-regular fa-calendar-days"></i> <span>Month:</span></label>
                             <input type="month" id="selected-month" onchange="onMonthChange()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none">
                         </div>
 
                         <div class="border-l border-slate-700 pl-4 text-right">
-                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block" data-bn="অর্থবছর মোট আয়" data-en="Fiscal Year Income">অর্থবছর মোট আয়</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Fiscal Year Income</span>
                             <span id="fiscal-total" class="font-bold text-blue-400 text-base md:text-lg">৳ 0.00</span>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -259,7 +236,7 @@
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
                     <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
                         <i class="fa-solid fa-calculator text-blue-400"></i>
-                        <span data-bn="মোট আয় (ফিল্টারকৃত)" data-en="Total Income (Filtered)">মোট আয় (ফিল্টারকৃত)</span>
+                        <span>Total Income (Filtered)</span>
                     </div>
                     <div id="month-total" class="text-2xl font-bold text-white">৳ 0.00</div>
                 </div>
@@ -267,7 +244,7 @@
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
                     <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
                         <i class="fa-solid fa-user-gear text-emerald-400"></i>
-                        <span data-bn="আমার অংশ (৫০%)" data-en="My Share (50%)">আমার অংশ (৫০%)</span>
+                        <span>My Share (50%)</span>
                     </div>
                     <div id="my-share" class="text-2xl font-bold text-emerald-400">৳ 0.00</div>
                 </div>
@@ -275,7 +252,7 @@
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
                     <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
                         <i class="fa-solid fa-hand-holding-dollar text-amber-400"></i>
-                        <span data-bn="মোট অগ্রিম (মালিকের ৫০% হতে)" data-en="Total Advance (from Owner)">মোট অগ্রিম (মালিকের ৫০% হতে)</span>
+                        <span>Total Advance (from Owner)</span>
                     </div>
                     <div id="total-advance" class="text-2xl font-bold text-amber-400">৳ 0.00</div>
                 </div>
@@ -283,7 +260,7 @@
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-md">
                     <div class="text-slate-400 text-xs font-medium flex items-center gap-2 mb-1">
                         <i class="fa-solid fa-building-columns text-purple-400"></i>
-                        <span data-bn="মালিককে প্রদেয় বাকি" data-en="Payable to Owner">মালিককে প্রদেয় বাকি</span>
+                        <span>Payable to Owner</span>
                     </div>
                     <div id="owner-due" class="text-2xl font-bold text-purple-400">৳ 0.00</div>
                 </div>
@@ -294,11 +271,11 @@
                 <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/80">
                     <h3 class="font-semibold text-slate-200 flex items-center gap-2 text-sm md:text-base">
                         <i class="fa-solid fa-list-check text-blue-400"></i>
-                        <span data-bn="দৈনিক আয়ের এন্ট্রি তালিকা (মাসিক ১ পাতায়)" data-en="Daily Income Entry List (Monthly 1 Page)">দৈনিক আয়ের এন্ট্রি তালিকা (মাসিক ১ পাতায়)</span>
+                        <span>Daily Income Entry List</span>
                     </h3>
                     <button onclick="addNewRow()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3.5 py-2 rounded-lg transition shadow flex items-center gap-1.5">
                         <i class="fa-solid fa-plus"></i>
-                        <span data-bn="নতুন দিন যুক্ত করুন" data-en="Add New Day">নতুন দিন যুক্ত করুন</span>
+                        <span>Add New Day</span>
                     </button>
                 </div>
 
@@ -306,38 +283,34 @@
                     <table class="w-full text-left text-xs md:text-sm text-slate-300">
                         <thead class="bg-slate-900 text-slate-400 text-[11px] uppercase tracking-wider">
                             <tr>
-                                <th class="p-3 w-32" data-bn="তারিখ" data-en="Date">তারিখ</th>
-                                <th class="p-3" data-bn="২৫টি পৃথক কাজের বিবরণ ও আয়" data-en="25 Separate Job Details & Amounts">২৫টি পৃথক কাজের বিবরণ ও আয়</th>
-                                <th class="p-3 text-right w-28" data-bn="মোট আয়" data-en="Total">মোট আয়</th>
-                                <th class="p-3 text-right w-28" data-bn="আমার ৫০%" data-en="My 50%">আমার ৫০%</th>
-                                <th class="p-3 text-right w-28" data-bn="অগ্রিম (মালিক)" data-en="Advance">অগ্রিম (মালিক)</th>
-                                <th class="p-3 text-right w-28" data-bn="মালিক পাবেন" data-en="Owner Receives">মালিক পাবেন</th>
-                                <th class="p-3 text-center w-16" data-bn="মুছুন" data-en="Action">মুছুন</th>
+                                <th class="p-3 w-32">Date</th>
+                                <th class="p-3">25 Separate Job Details & Amounts</th>
+                                <th class="p-3 text-right w-28">Total</th>
+                                <th class="p-3 text-right w-28">My 50%</th>
+                                <th class="p-3 text-right w-28">Advance</th>
+                                <th class="p-3 text-right w-28">Owner Receives</th>
+                                <th class="p-3 text-center w-16">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="daily-table-body" class="divide-y divide-slate-700/60">
-                            <!-- Dynamic Daily Rows -->
-                        </tbody>
+                        <tbody id="daily-table-body" class="divide-y divide-slate-700/60"></tbody>
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- ================= CUSTOMER DATA MODAL ================= -->
+    <!-- CUSTOMER DATA MODAL -->
     <div id="customer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-5xl my-auto overflow-hidden shadow-2xl">
-            
             <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/60">
                 <div class="flex items-center gap-4">
                     <h3 class="font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-database text-indigo-400"></i>
-                        <span>ডাটাবেজ ম্যানেজমেন্ট</span>
+                        <span>Database Management</span>
                     </h3>
                     <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
                         <button id="tab-btn-cust" onclick="switchDbTab('cust')" class="px-3 py-1 rounded text-xs font-semibold bg-indigo-600 text-white transition">
-                            <i class="fa-solid fa-users mr-1"></i> কাস্টমার ডেটা
+                            <i class="fa-solid fa-users mr-1"></i> Customer Data
                         </button>
                         <button id="tab-btn-login" onclick="switchDbTab('login')" class="px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition">
                             <i class="fa-solid fa-key mr-1"></i> Login Data
@@ -350,17 +323,14 @@
             </div>
 
             <div class="p-4 md:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                
-                <!-- TAB 1: CUSTOMER DATA VIEW -->
                 <div id="db-tab-cust-content" class="space-y-6">
-                    <!-- Add/Edit Customer Form -->
                     <form onsubmit="handleSaveCustomer(event)" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-3">
                         <div class="flex justify-between items-center">
                             <h4 id="cust-form-title" class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-user-plus"></i> নতুন কাস্টমার যুক্ত করুন
+                                <i class="fa-solid fa-user-plus"></i> Add New Customer
                             </h4>
                             <button type="button" id="cust-cancel-edit-btn" onclick="resetCustomerForm()" class="hidden text-xs text-rose-400 hover:underline">
-                                <i class="fa-solid fa-xmark"></i> এডিট বাতিল করুন
+                                <i class="fa-solid fa-xmark"></i> Cancel Edit
                             </button>
                         </div>
 
@@ -368,44 +338,43 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">কাস্টমার নাম</label>
-                                <input type="text" id="cust-name-input" required placeholder="নাম লিখুন..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                                <label class="block text-[11px] text-slate-400 mb-1">Customer Name</label>
+                                <input type="text" id="cust-name-input" required placeholder="Enter name..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">মোবাইল নম্বর</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Mobile Number</label>
                                 <input type="text" id="cust-phone-input" required placeholder="017xxxxxxxx" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">কাস্টমার টাইপ</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Customer Type</label>
                                 <select id="cust-type-input" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                                    <option value="Regular">Regular (রেগুলার)</option>
-                                    <option value="VIP">VIP (ভিআইপি)</option>
-                                    <option value="Corporate">Corporate (কর্পোরেট)</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="Corporate">Corporate</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">যোগদানের তারিখ</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Joining Date</label>
                                 <input type="date" id="cust-date-input" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
                             </div>
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">ফটো আপলোড (সর্বোচ্চ 100 KB)</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Upload Photo (Max 100 KB)</label>
                                 <input type="file" id="cust-photo-input" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600/30 file:text-indigo-300 hover:file:bg-indigo-600/50">
                             </div>
                             <button type="submit" id="cust-submit-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5 py-2 rounded-lg transition shadow-lg shadow-indigo-600/30 font-semibold self-end">
-                                <i class="fa-solid fa-check mr-1"></i> সেভ করুন
+                                <i class="fa-solid fa-check mr-1"></i> Save
                             </button>
                         </div>
                     </form>
 
-                    <!-- Filter & Export Toolbar -->
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
                         <div class="flex items-center gap-2">
-                            <label class="text-xs text-slate-400">টাইপ দিয়ে ফিল্টার:</label>
+                            <label class="text-xs text-slate-400">Filter by Type:</label>
                             <select id="cust-filter-type" onchange="renderCustomerList()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
-                                <option value="All">সকল টাইপ (All)</option>
+                                <option value="All">All Types</option>
                                 <option value="Regular">Regular</option>
                                 <option value="VIP">VIP</option>
                                 <option value="Corporate">Corporate</option>
@@ -417,113 +386,100 @@
                         </button>
                     </div>
 
-                    <!-- Customer Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider text-[11px]">
                                 <tr>
-                                    <th class="p-3">আইডি</th>
-                                    <th class="p-3">নাম</th>
-                                    <th class="p-3">মোবাইল</th>
-                                    <th class="p-3">টাইপ</th>
-                                    <th class="p-3">যোগদানের তারিখ</th>
-                                    <th class="p-3 text-center">ফটো</th>
-                                    <th class="p-3 text-center">অ্যাকশন</th>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Name</th>
+                                    <th class="p-3">Mobile</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Join Date</th>
+                                    <th class="p-3 text-center">Photo</th>
+                                    <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="customer-table-body" class="divide-y divide-slate-700/60">
-                                <!-- Dynamic Customer Rows -->
-                            </tbody>
+                            <tbody id="customer-table-body" class="divide-y divide-slate-700/60"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- TAB 2: LOGIN DATA VIEW -->
                 <div id="db-tab-login-content" class="space-y-6 hidden">
-                    <!-- Add/Edit Login Data Form -->
                     <form onsubmit="handleSaveLoginData(event)" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-3">
                         <div class="flex justify-between items-center">
                             <h4 id="login-form-title" class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-key"></i> নতুন লগইন তথ্য যুক্ত করুন
+                                <i class="fa-solid fa-key"></i> Add New Login Info
                             </h4>
                             <button type="button" id="login-cancel-edit-btn" onclick="resetLoginDataForm()" class="hidden text-xs text-rose-400 hover:underline">
-                                <i class="fa-solid fa-xmark"></i> এডিট বাতিল করুন
+                                <i class="fa-solid fa-xmark"></i> Cancel Edit
                             </button>
                         </div>
 
                         <input type="hidden" id="editing-login-id" value="">
 
                         <div class="mb-3">
-                            <label class="block text-[11px] text-slate-400 mb-1">আইডির ধরন</label>
+                            <label class="block text-[11px] text-slate-400 mb-1">ID Category</label>
                             <select id="login-category-input" onchange="renderLoginDynamicFields()" class="w-full md:w-1/3 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 font-semibold text-amber-400">
-                                <option value="Tax">আয়কর</option>
-                                <option value="VAT">ভ্যাট</option>
-                                <option value="Others">অন্যান্য</option>
+                                <option value="Tax">Income Tax</option>
+                                <option value="VAT">VAT</option>
+                                <option value="Others">Others</option>
                             </select>
                         </div>
 
-                        <!-- Dynamic Inputs Container -->
-                        <div id="login-dynamic-fields" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                            <!-- Dynamic fields populated via JS -->
-                        </div>
+                        <div id="login-dynamic-fields" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
 
                         <div class="flex justify-end pt-2">
                             <button type="submit" id="login-submit-btn" class="bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold text-xs px-5 py-2 rounded-lg transition shadow-lg shadow-amber-600/30">
-                                <i class="fa-solid fa-check mr-1"></i> সেভ করুন
+                                <i class="fa-solid fa-check mr-1"></i> Save
                             </button>
                         </div>
                     </form>
 
-                    <!-- Filter & Search Toolbar -->
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
                         <div class="flex items-center gap-2">
-                            <label class="text-xs text-slate-400">আইডির ধরন ফিল্টার:</label>
+                            <label class="text-xs text-slate-400">Filter Category:</label>
                             <select id="login-filter-category" onchange="renderLoginDataList()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
-                                <option value="All">সকল প্রকার (All)</option>
-                                <option value="Tax">আয়কর</option>
-                                <option value="VAT">ভ্যাট</option>
-                                <option value="Others">অন্যান্য</option>
+                                <option value="All">All Types</option>
+                                <option value="Tax">Income Tax</option>
+                                <option value="VAT">VAT</option>
+                                <option value="Others">Others</option>
                             </select>
                         </div>
 
                         <div class="relative w-full sm:w-64">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                            <input type="text" id="login-search-input" onkeyup="renderLoginDataList()" placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            <input type="text" id="login-search-input" onkeyup="renderLoginDataList()" placeholder="Search by name or mobile..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                         </div>
                     </div>
 
-                    <!-- Login Data Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider text-[11px]">
                                 <tr>
-                                    <th class="p-3">আইডির ধরন</th>
-                                    <th class="p-3">নাম</th>
-                                    <th class="p-3">মোবাইল</th>
-                                    <th class="p-3">ইউজার আইডি</th>
-                                    <th class="p-3">পাসওয়ার্ড</th>
-                                    <th class="p-3">অন্যান্য বিস্তারিত</th>
-                                    <th class="p-3 text-center">অ্যাকশন</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3">Name</th>
+                                    <th class="p-3">Mobile</th>
+                                    <th class="p-3">User ID</th>
+                                    <th class="p-3">Password</th>
+                                    <th class="p-3">Other Details</th>
+                                    <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="login-table-body" class="divide-y divide-slate-700/60">
-                                <!-- Dynamic Login Data Rows -->
-                            </tbody>
+                            <tbody id="login-table-body" class="divide-y divide-slate-700/60"></tbody>
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- ================= PHOTO POP-UP MODAL (40mm x 50mm) ================= -->
+    <!-- PHOTO POP-UP MODAL (40mm x 50mm) -->
     <div id="photo-view-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
         <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 text-center shadow-2xl relative space-y-4">
             <button onclick="closePhotoModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">কাস্টমার ছবি (40mm x 50mm)</h4>
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Customer Photo (40mm x 50mm)</h4>
             
             <div class="flex justify-center">
                 <div class="border-2 border-indigo-500 rounded p-1 bg-slate-900 inline-block shadow-lg">
@@ -535,14 +491,14 @@
         </div>
     </div>
 
-    <!-- ================= JOB ENTRY MODAL ================= -->
+    <!-- JOB ENTRY MODAL -->
     <div id="job-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-auto overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/60">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-blue-400"></i>
                     <h3 class="font-bold text-white text-sm md:text-base">
-                        <span data-bn="২৫টি কাজের আলাদা আলাদা হিসাব - তারিখ: " data-en="25 Individual Job Breakdown - Date: ">২৫টি কাজের আলাদা আলাদা হিসাব - তারিখ: </span>
+                        <span>25 Individual Job Breakdown - Date: </span>
                         <span id="modal-date-display" class="text-blue-400"></span>
                     </h3>
                 </div>
@@ -554,7 +510,7 @@
             <div class="p-4 md:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                 <p class="text-xs text-slate-400 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700/50">
                     <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
-                    <span data-bn="প্রতিটি কাজের নাম বা বিবরণ এবং ডানপাশে আয় (টাকা) লিখুন।" data-en="Enter description and amount for tasks.">প্রতিটি কাজের নাম বা বিবরণ এবং ডানপাশে আয় (টাকা) লিখুন।</span>
+                    <span>Enter description and amount for tasks.</span>
                 </p>
 
                 <div id="jobs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
@@ -562,22 +518,22 @@
 
             <div class="p-4 border-t border-slate-700 bg-slate-900/80 flex flex-wrap justify-between items-center gap-3">
                 <div class="text-sm font-semibold text-slate-300">
-                    <span data-bn="এই দিনের মোট আয়: " data-en="Daily Total: ">এই দিনের মোট আয়: </span>
+                    <span>Daily Total: </span>
                     <span id="modal-calculated-total" class="text-emerald-400 text-lg font-bold ml-1">৳ 0.00</span>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="closeJobModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs md:text-sm px-4 py-2 rounded-lg transition">
-                        <span data-bn="বন্ধ করুন" data-en="Close">বন্ধ করুন</span>
+                        <span>Close</span>
                     </button>
                     <button onclick="saveJobModalData()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm px-5 py-2 rounded-lg transition shadow-lg shadow-blue-600/30">
-                        <span data-bn="সংরক্ষণ করুন" data-en="Save Changes">সংরক্ষণ করুন</span>
+                        <span>Save Changes</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= INVOICE MODAL (UPDATED WITH SAVED TAB & EDIT/DELETE) ================= -->
+    <!-- INVOICE MODAL -->
     <div id="invoice-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-4 z-50 overflow-y-auto">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-auto overflow-hidden shadow-2xl">
             
@@ -585,14 +541,14 @@
                 <div class="flex items-center gap-4">
                     <h3 class="font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-file-invoice text-emerald-400"></i>
-                        <span>ইনভয়েজ ম্যানেজমেন্ট</span>
+                        <span>Invoice Management</span>
                     </h3>
                     <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
                         <button id="tab-btn-inv-create" onclick="switchInvoiceTab('create')" class="px-3 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition">
-                            <i class="fa-solid fa-plus-circle mr-1"></i> নতুন ইনভয়েস
+                            <i class="fa-solid fa-plus-circle mr-1"></i> New Invoice
                         </button>
                         <button id="tab-btn-inv-list" onclick="switchInvoiceTab('list')" class="px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition">
-                            <i class="fa-solid fa-list-check mr-1"></i> পূর্বের ইনভয়েস তালিকা
+                            <i class="fa-solid fa-list-check mr-1"></i> Invoice List
                         </button>
                     </div>
                 </div>
@@ -609,59 +565,66 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/50 p-3.5 rounded-xl border border-slate-700">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">ইনভয়েজ তারিখ</label>
+                            <label class="block text-xs text-slate-400 mb-1">Invoice Date</label>
                             <input type="date" id="inv-date" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1" data-bn="গ্রাহকের নাম" data-en="Customer Name">গ্রাহকের নাম</label>
-                            <input type="text" id="inv-customer-name" placeholder="কাস্টমারের নাম..." class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs text-slate-400 mb-1">Customer Name</label>
+                            <input type="text" id="inv-customer-name" placeholder="Customer name..." class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label>
+                            <label class="block text-xs text-slate-400 mb-1">Phone Number</label>
                             <input type="text" id="inv-customer-phone" placeholder="017xxxxxxxx" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-xs font-semibold text-slate-300" data-bn="কাজের বিবরণ ও মূল্য" data-en="Work Description & Price">কাজের বিবরণ ও মূল্য</label>
+                        <label class="block text-xs font-semibold text-slate-300">Job Description, Quantity & Pricing Items</label>
+                        <div class="hidden sm:grid grid-cols-12 gap-2 text-[11px] text-slate-400 font-bold uppercase tracking-wider px-1">
+                            <span class="col-span-1 text-center">SL</span>
+                            <span class="col-span-5">Job Description</span>
+                            <span class="col-span-2 text-center">Qty</span>
+                            <span class="col-span-2 text-right">Price (TK)</span>
+                            <span class="col-span-2 text-right">Total (TK)</span>
+                        </div>
                         <div id="invoice-items" class="space-y-2"></div>
                         <button onclick="addInvoiceItemRow()" class="text-xs text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1 font-medium pt-1">
-                            <i class="fa-solid fa-plus-circle"></i> <span data-bn="আরো আইটেম যোগ করুন" data-en="Add More Item">আরো আইটেম যোগ করুন</span>
+                            <i class="fa-solid fa-plus-circle"></i> <span>Add More Items</span>
                         </button>
                     </div>
 
                     <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 space-y-3">
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1" data-bn="উপ-মোট (Subtotal)" data-en="Subtotal">উপ-মোট (Subtotal)</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Subtotal</label>
                                 <input type="number" id="inv-subtotal" readonly value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-slate-200">
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1" data-bn="ডিসকাউন্ট / ছাড়" data-en="Discount">ডিসকাউন্ট / ছাড়</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Discount</label>
                                 <input type="number" id="inv-discount" value="0" oninput="calculateInvoiceTotals()" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-amber-400 focus:outline-none focus:border-blue-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1" data-bn="জমা টাকা (Paid)" data-en="Paid Amount">জমা টাকা (Paid)</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Paid Amount</label>
                                 <input type="number" id="inv-advance" value="0" oninput="calculateInvoiceTotals()" placeholder="0" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-emerald-400 focus:outline-none focus:border-blue-500">
                             </div>
                             <div>
-                                <label class="block text-[11px] text-slate-400 mb-1" data-bn="মোট বকেয়া" data-en="Due Amount">মোট বকেয়া</label>
+                                <label class="block text-[11px] text-slate-400 mb-1">Due Amount</label>
                                 <input type="number" id="inv-due" readonly value="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs md:text-sm font-semibold text-rose-400">
                             </div>
                         </div>
 
                         <div class="border-t border-slate-700 pt-2.5 flex justify-between items-center">
-                            <span class="text-xs md:text-sm font-bold text-slate-300" data-bn="সর্বমোট প্রদেয় বিল:" data-en="Grand Total Payable:">সর্বমোট প্রদেয় বিল:</span>
+                            <span class="text-xs md:text-sm font-bold text-slate-300">Grand Total:</span>
                             <span id="inv-net-total-display" class="text-xl font-bold text-emerald-400">৳ 0.00</span>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-2">
                         <button onclick="resetInvoiceForm()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs md:text-sm px-4 py-2 rounded-lg transition">
-                            <span data-bn="রিসেট" data-en="Reset">রিসেট</span>
+                            <span>Reset</span>
                         </button>
                         <button onclick="saveAndPrintInvoice()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-emerald-600/30">
-                            <i class="fa-solid fa-print"></i> <span data-bn="সেভ ও প্রিন্ট করুন" data-en="Save & Print">সেভ ও প্রিন্ট করুন</span>
+                            <i class="fa-solid fa-print"></i> <span>Save & Print</span>
                         </button>
                     </div>
                 </div>
@@ -670,26 +633,24 @@
                 <div id="inv-tab-list-content" class="space-y-4 hidden">
                     <div class="relative w-full sm:w-72">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                        <input type="text" id="inv-search-input" onkeyup="renderInvoiceList()" placeholder="আইডি, নাম বা মোবাইল দিয়ে খুঁজুন..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="inv-search-input" onkeyup="renderInvoiceList()" placeholder="Search by ID, Name or Phone..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs text-slate-300">
                             <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider text-[11px]">
                                 <tr>
-                                    <th class="p-3">আইডি</th>
-                                    <th class="p-3">তারিখ</th>
-                                    <th class="p-3">কাস্টমার নাম</th>
-                                    <th class="p-3">মোবাইল</th>
-                                    <th class="p-3 text-right">মোট বিল</th>
-                                    <th class="p-3 text-right">জমা</th>
-                                    <th class="p-3 text-right">বকেয়া</th>
-                                    <th class="p-3 text-center">অ্যাকশন</th>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Customer Name</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3 text-right">Total Bill</th>
+                                    <th class="p-3 text-right">Paid</th>
+                                    <th class="p-3 text-right">Due</th>
+                                    <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="invoice-table-body" class="divide-y divide-slate-700/60">
-                                <!-- Dynamic Saved Invoices -->
-                            </tbody>
+                            <tbody id="invoice-table-body" class="divide-y divide-slate-700/60"></tbody>
                         </table>
                     </div>
                 </div>
@@ -698,7 +659,7 @@
         </div>
     </div>
 
-    <!-- ================= EDITABLE PROFILE & SLEEP SETTINGS MODAL ================= -->
+    <!-- EDITABLE PROFILE & SLEEP SETTINGS MODAL -->
     <div id="profile-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md overflow-hidden relative shadow-2xl my-auto">
             <button onclick="toggleProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
@@ -724,18 +685,18 @@
             <div class="p-6 space-y-4 text-xs md:text-sm max-h-[60vh] overflow-y-auto">
                 <div class="space-y-3">
                     <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-pen text-blue-400"></i> প্রোফাইল এডিট করুন
+                        <i class="fa-solid fa-user-pen text-blue-400"></i> Edit Profile
                     </h4>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">পূর্ণ নাম</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">Full Name</label>
                         <input type="text" id="edit-prof-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">ফোন নম্বর</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">Phone Number</label>
                         <input type="text" id="edit-prof-phone" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <button onclick="saveProfileInfo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition shadow">
-                        তথ্য পরিবর্তন করুন
+                        Update Info
                     </button>
                 </div>
 
@@ -743,23 +704,23 @@
 
                 <div class="space-y-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700">
                     <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-shield"></i> স্লিপ মোড ও নিরাপত্তা পিন
+                        <i class="fa-solid fa-user-shield"></i> Sleep Mode & Security PIN
                     </h4>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1">টাইমার (মিনিট)</label>
-                            <input type="number" id="sleep-time-input" placeholder="যেমন: 5" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
+                            <label class="block text-[10px] text-slate-400 mb-1">Timer (Minutes)</label>
+                            <input type="number" id="sleep-time-input" placeholder="e.g. 5" min="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1">সিকিউরিটি পিন (PIN)</label>
+                            <label class="block text-[10px] text-slate-400 mb-1">Security PIN</label>
                             <input type="password" id="sleep-pin-setting" maxlength="6" placeholder="4 digit" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
                         </div>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="saveSleepSettings()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold py-2 rounded-lg transition text-xs">
-                            সেটিংস সেভ করুন
+                            Save Settings
                         </button>
-                        <button onclick="triggerSleepNow()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition text-xs" title="এখনই স্লিপ মোড চালু করুন">
+                        <button onclick="triggerSleepNow()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition text-xs" title="Sleep Now">
                             <i class="fa-solid fa-power-off"></i>
                         </button>
                     </div>
@@ -769,108 +730,171 @@
         </div>
     </div>
 
-    <!-- ================= PRINTABLE INVOICE ================= -->
+    <!-- PRINTABLE INVOICE (A4 LANDSCAPE DUAL COPY: OFFICE COPY & CUSTOMER COPY) -->
     <div id="printable-invoice-container" class="hidden">
-        <div class="p-8 max-w-3xl mx-auto watermark-container min-h-[900px] flex flex-col justify-between relative">
+        <div class="p-4 w-full mx-auto grid grid-cols-2 gap-6 bg-white text-black min-h-[500px]">
             
-            <div class="watermark-bg">
-                <svg width="350" height="350" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-blue-900">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                    <line x1="8" y1="21" x2="16" y2="21"></line>
-                    <line x1="12" y1="17" x2="12" y2="21"></line>
-                </svg>
-            </div>
+            <!-- LEFT COLUMN: OFFICE COPY -->
+            <div class="border-r-2 border-dashed border-gray-400 pr-6 space-y-3 flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-start border-b-2 border-black pb-2">
+                        <div class="flex items-center gap-2">
+                            <div>
+                                <h1 class="text-xl font-black text-black tracking-wider">SUMON COMPUTER</h1>
+                                <p class="text-[10px] text-gray-800 font-semibold">Khan Trade Center, Janata Bank More, Faridpur</p>
+                                <p class="text-[10px] text-gray-800">Phone: 01518-411872 | 01571-524152</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block border border-black text-black text-[10px] font-bold px-2 py-0.5 rounded mb-1">OFFICE COPY</span>
+                            <p class="text-[10px] text-gray-800">Date: <span class="print-date font-semibold text-black"></span></p>
+                            <p class="text-[10px] text-gray-800">ID: <span class="print-inv-id font-semibold text-black"></span></p>
+                        </div>
+                    </div>
 
-            <div class="relative z-10 space-y-6">
-                <div class="flex justify-between items-start border-b-2 border-blue-900 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow">
-                            <i class="fa-solid fa-desktop text-2xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-black text-blue-950 tracking-wider">SUMON COMPUTER</h1>
-                            <p class="text-xs text-gray-700 font-semibold">Khan Trade Center, Janata Bank More, Faridpur</p>
-                            <p class="text-xs text-gray-700">মোবাইল: 01518-411872, 01571-524152 | ইমেইল: 100pc.net@gmail.com</p>
-                        </div>
+                    <div class="p-2 rounded border border-black flex justify-between text-xs">
+                        <div><p class="text-black">Customer Name: <strong class="print-cust-name text-black"></strong></p></div>
+                        <div><p class="text-black">Phone: <strong class="print-cust-phone text-black"></strong></p></div>
                     </div>
-                    <div class="text-right">
-                        <span class="inline-block bg-blue-900 text-white text-xs font-bold px-3 py-1 rounded mb-1">INVOICE</span>
-                        <p class="text-xs text-gray-600">তারিখ: <span id="print-date" class="font-semibold text-black"></span></p>
-                        <p class="text-xs text-gray-600">আইডি: <span id="print-inv-id" class="font-semibold text-black"></span></p>
-                    </div>
+
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-black text-black text-[11px]">
+                                <th class="p-1.5 text-center border border-black w-8">#</th>
+                                <th class="p-1.5 text-left border border-black">Job Description</th>
+                                <th class="p-1.5 text-center border border-black w-12">Qty</th>
+                                <th class="p-1.5 text-right border border-black w-16">Price</th>
+                                <th class="p-1.5 text-right border border-black w-20">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="print-items-body border-b border-black"></tbody>
+                    </table>
                 </div>
 
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 flex justify-between text-xs md:text-sm">
-                    <div>
-                        <p class="text-gray-600">গ্রাহকের নাম: <strong id="print-cust-name" class="text-black"></strong></p>
-                    </div>
-                    <div>
-                        <p class="text-gray-600">মোবাইল নম্বর: <strong id="print-cust-phone" class="text-black"></strong></p>
-                    </div>
-                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end pt-1">
+                        <div class="flex flex-col items-center justify-center p-1">
+                            <div class="qrcode-container"></div>
+                        </div>
 
-                <table class="w-full border-collapse text-xs md:text-sm">
-                    <thead>
-                        <tr class="bg-blue-900 text-white">
-                            <th class="p-2.5 text-left border border-blue-900">#</th>
-                            <th class="p-2.5 text-left border border-blue-900">কাজের বিবরণ</th>
-                            <th class="p-2.5 text-right border border-blue-900">মূল্য (টাকা)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="print-items-body" class="divide-y divide-gray-300"></tbody>
-                </table>
-
-                <div class="flex justify-between items-end pt-2">
-                    <!-- QR Code Verification Section -->
-                    <div class="flex flex-col items-center justify-center p-2 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div id="qrcode" class="mb-1"></div>
-                        <span class="text-[9px] text-gray-500 font-medium tracking-tight">Scan to Verify Invoice</span>
+                        <div class="w-48 space-y-1 text-xs">
+                            <div class="flex justify-between py-0.5 border-b border-gray-300">
+                                <span class="text-black">Subtotal:</span>
+                                <span class="print-subtotal font-semibold">৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 border-b border-gray-300 text-black">
+                                <span>Discount:</span>
+                                <span class="print-discount font-semibold">- ৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 border-b border-gray-300 text-black">
+                                <span>Paid:</span>
+                                <span class="print-advance font-semibold">- ৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-black text-black font-bold">
+                                <span>Grand Total:</span>
+                                <span class="print-net-total">৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 text-black font-semibold">
+                                <span>Due:</span>
+                                <span class="print-due">৳ 0.00</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="w-64 space-y-1.5 text-xs md:text-sm">
-                        <div class="flex justify-between py-1 border-b border-gray-200">
-                            <span class="text-gray-600">উপ-মোট (Subtotal):</span>
-                            <span id="print-subtotal" class="font-semibold">৳ 0.00</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-gray-200 text-amber-700">
-                            <span>ডিসকাউন্ট (Discount):</span>
-                            <span id="print-discount" class="font-semibold">- ৳ 0.00</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-gray-200 text-emerald-700">
-                            <span>জমা টাকা (Paid):</span>
-                            <span id="print-advance" class="font-semibold">- ৳ 0.00</span>
-                        </div>
-                        <div class="flex justify-between py-1.5 border-b-2 border-blue-900 text-blue-950 font-bold text-base">
-                            <span>সর্বমোট প্রদেয়:</span>
-                            <span id="print-net-total">৳ 0.00</span>
-                        </div>
-                        <div class="flex justify-between py-1 text-rose-700 font-semibold">
-                            <span>অবশিষ্ট বকেয়া (Due):</span>
-                            <span id="print-due">৳ 0.00</span>
+                    <div class="pt-8 flex justify-between items-end text-[11px] text-black">
+                        <div class="text-center border-t border-black pt-0.5 w-32">Customer Signature</div>
+                        <div class="text-center border-t border-black pt-0.5 w-36">
+                            Operator (<span class="print-operator-name">Operator</span>)
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Signature Area -->
-            <div class="relative z-10 pt-16">
-                <div class="flex justify-between items-end text-xs text-gray-700">
-                    <div class="text-center border-t border-gray-400 pt-1 w-40">গ্রাহকের স্বাক্ষর</div>
-                    <div class="text-center border-t border-gray-400 pt-1 w-48">
-                        অপারেটর স্বাক্ষর (<span id="print-operator-name">Operator</span>)
+            <!-- RIGHT COLUMN: CUSTOMER COPY -->
+            <div class="pl-2 space-y-3 flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-start border-b-2 border-black pb-2">
+                        <div class="flex items-center gap-2">
+                            <div>
+                                <h1 class="text-xl font-black text-black tracking-wider">SUMON COMPUTER</h1>
+                                <p class="text-[10px] text-gray-800 font-semibold">Khan Trade Center, Janata Bank More, Faridpur</p>
+                                <p class="text-[10px] text-gray-800">Phone: 01518-411872 | 01571-524152</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block border border-black text-black text-[10px] font-bold px-2 py-0.5 rounded mb-1">CUSTOMER COPY</span>
+                            <p class="text-[10px] text-gray-800">Date: <span class="print-date font-semibold text-black"></span></p>
+                            <p class="text-[10px] text-gray-800">ID: <span class="print-inv-id font-semibold text-black"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="p-2 rounded border border-black flex justify-between text-xs">
+                        <div><p class="text-black">Customer Name: <strong class="print-cust-name text-black"></strong></p></div>
+                        <div><p class="text-black">Phone: <strong class="print-cust-phone text-black"></strong></p></div>
+                    </div>
+
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-black text-black text-[11px]">
+                                <th class="p-1.5 text-center border border-black w-8">#</th>
+                                <th class="p-1.5 text-left border border-black">Job Description</th>
+                                <th class="p-1.5 text-center border border-black w-12">Qty</th>
+                                <th class="p-1.5 text-right border border-black w-16">Price</th>
+                                <th class="p-1.5 text-right border border-black w-20">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="print-items-body border-b border-black"></tbody>
+                    </table>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end pt-1">
+                        <div class="flex flex-col items-center justify-center p-1">
+                            <div class="qrcode-container"></div>
+                        </div>
+
+                        <div class="w-48 space-y-1 text-xs">
+                            <div class="flex justify-between py-0.5 border-b border-gray-300">
+                                <span class="text-black">Subtotal:</span>
+                                <span class="print-subtotal font-semibold">৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 border-b border-gray-300 text-black">
+                                <span>Discount:</span>
+                                <span class="print-discount font-semibold">- ৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 border-b border-gray-300 text-black">
+                                <span>Paid:</span>
+                                <span class="print-advance font-semibold">- ৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-black text-black font-bold">
+                                <span>Grand Total:</span>
+                                <span class="print-net-total">৳ 0.00</span>
+                            </div>
+                            <div class="flex justify-between py-0.5 text-black font-semibold">
+                                <span>Due:</span>
+                                <span class="print-due">৳ 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-8 flex justify-between items-end text-[11px] text-black">
+                        <div class="text-center border-t border-black pt-0.5 w-32">Customer Signature</div>
+                        <div class="text-center border-t border-black pt-0.5 w-36">
+                            Operator (<span class="print-operator-name">Operator</span>)
+                        </div>
                     </div>
                 </div>
-                <p class="text-center text-[10px] text-gray-500 mt-6">Sumon Computer - আপনার সকল কম্পিউটার সেবা প্রদানে আমরা প্রতিশ্রুতিবদ্ধ। ধন্যবাদ!</p>
             </div>
+
         </div>
     </div>
 
-    <!-- ================= FOOTER CREDIT ================= -->
+    <!-- FOOTER CREDIT -->
     <footer class="py-4 text-center text-xs font-semibold text-slate-400">
         ***This Website Made and Maintenance by Hredoy Roy- 01518411872***
     </footer>
 
-    <!-- ================= FIREBASE & APP SCRIPT ================= -->
+    <!-- FIREBASE & APP SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { 
@@ -892,7 +916,6 @@
             child
         } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
 
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyBzNKa1Xd4Ve8_iG9IPCsOqpO01Vg2xSHE",
             authDomain: "diet-7d4ba.firebaseapp.com",
@@ -908,11 +931,8 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // Auto Logout Session Persistence
         setPersistence(auth, browserSessionPersistence);
 
-        // Global State
-        window.currentLang = 'bn';
         window.currentUserData = null;
         window.records = [];
         window.customers = [];
@@ -964,28 +984,24 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
 
-                // Realtime Records Listener
                 onValue(ref(db, `users/${user.uid}/records`), (snapshot) => {
                     const data = snapshot.val();
                     window.records = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
                     window.renderDailyRecords();
                 });
 
-                // Realtime Customers Listener
                 onValue(ref(db, `users/${user.uid}/customers`), (snapshot) => {
                     const data = snapshot.val();
                     window.customers = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
                     window.renderCustomerList();
                 });
 
-                // Realtime Login Data Listener
                 onValue(ref(db, `users/${user.uid}/loginDataList`), (snapshot) => {
                     const data = snapshot.val();
                     window.loginDataList = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
                     window.renderLoginDataList();
                 });
 
-                // Realtime Invoices Listener
                 onValue(ref(db, `users/${user.uid}/invoices`), (snapshot) => {
                     const data = snapshot.val();
                     window.invoices = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
@@ -1021,7 +1037,7 @@
                 showAuthError(err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span data-bn="প্রবেশ করুন" data-en="Log In">${window.currentLang === 'bn' ? 'প্রবেশ করুন' : 'Log In'}</span>`;
+                btn.innerHTML = `<span>Log In</span>`;
             }
         };
 
@@ -1049,7 +1065,7 @@
                 showAuthError(err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span data-bn="অ্যাকাউন্ট তৈরি করুন" data-en="Create Account">${window.currentLang === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account'}</span>`;
+                btn.innerHTML = `<span>Create Account</span>`;
             }
         };
 
@@ -1067,10 +1083,9 @@
             }
         }
 
-        // PROFILE & SLEEP HANDLERS
         function updateUserUI() {
             if (!window.currentUserData) return;
-            const name = window.currentUserData.name || 'User';
+            const name = window.currentUserData.name || 'Operator';
             const phone = window.currentUserData.phone || '';
             const photoUrl = window.currentUserData.photoUrl || '';
 
@@ -1078,7 +1093,8 @@
             document.getElementById('prof-name').innerText = name;
             document.getElementById('edit-prof-name').value = name;
             document.getElementById('edit-prof-phone').value = phone;
-            document.getElementById('print-operator-name').innerText = name;
+
+            document.querySelectorAll('.print-operator-name').forEach(el => el.innerText = name);
 
             const avatarBadge = document.getElementById('user-avatar-badge-container');
             const profAvatar = document.getElementById('prof-avatar');
@@ -1110,7 +1126,7 @@
             const phone = document.getElementById('edit-prof-phone').value.trim();
 
             if (!name) {
-                alert('অনুগ্রহ করে নাম প্রদান করুন।');
+                alert('Please provide a name.');
                 return;
             }
 
@@ -1119,7 +1135,7 @@
 
             await set(ref(db, `users/${auth.currentUser.uid}/profile`), window.currentUserData);
             updateUserUI();
-            alert('প্রোফাইল তথ্য আপডেট হয়েছে!');
+            alert('Profile updated successfully!');
         };
 
         window.handleProfilePicUpload = function(event) {
@@ -1143,7 +1159,7 @@
             const pin = document.getElementById('sleep-pin-setting').value.trim();
 
             if (minutes > 0 && !pin) {
-                alert('স্লিপ মোড অন করার জন্য সিকিউরিটি পিন (PIN) সেট করা বাধ্যতামূলক!');
+                alert('Setting a security PIN is mandatory for Sleep Mode!');
                 return;
             }
 
@@ -1154,9 +1170,9 @@
             
             const statusText = document.getElementById('sleep-status-text');
             if (minutes > 0) {
-                statusText.innerText = `${minutes} মিনিট পর অটো লক সক্রিয় রয়েছে।`;
+                statusText.innerText = `Auto lock active after ${minutes} minutes.`;
             } else {
-                statusText.innerText = `স্লিপ মোড বন্ধ করা হয়েছে।`;
+                statusText.innerText = `Sleep Mode is disabled.`;
             }
             statusText.classList.remove('hidden');
 
@@ -1176,7 +1192,7 @@
 
         window.triggerSleepNow = function() {
             if (!window.currentUserData?.sleepPin) {
-                alert('স্লিপ মোড চালু করতে প্রথমে একটি পিন (PIN) সেট করুন।');
+                alert('Set a security PIN before activating Sleep Mode.');
                 return;
             }
             toggleProfileModal();
@@ -1198,7 +1214,7 @@
                 setupSleepTimer();
             } else {
                 const err = document.getElementById('sleep-error');
-                err.innerText = 'ভুল পিন দিয়েছেন! পুনরায় চেষ্টা করুন।';
+                err.innerText = 'Incorrect PIN! Please try again.';
                 err.classList.remove('hidden');
             }
         };
@@ -1227,7 +1243,7 @@
             }
         }
 
-        // ================= DATABASE MODAL TABS =================
+        // DATABASE MODAL TABS
         window.switchDbTab = function(tab) {
             const custBtn = document.getElementById('tab-btn-cust');
             const loginBtn = document.getElementById('tab-btn-login');
@@ -1247,7 +1263,7 @@
             }
         };
 
-        // ================= CUSTOMER MANAGEMENT & EDITING =================
+        // CUSTOMER MANAGEMENT
         window.openCustomerModal = function() {
             document.getElementById('customer-modal').classList.remove('hidden');
             window.renderCustomerList();
@@ -1268,8 +1284,8 @@
             document.getElementById('cust-date-input').value = new Date().toISOString().split('T')[0];
             document.getElementById('cust-photo-input').value = '';
             
-            document.getElementById('cust-form-title').innerHTML = `<i class="fa-solid fa-user-plus"></i> নতুন কাস্টমার যুক্ত করুন`;
-            document.getElementById('cust-submit-btn').innerHTML = `<i class="fa-solid fa-check mr-1"></i> সেভ করুন`;
+            document.getElementById('cust-form-title').innerHTML = `<i class="fa-solid fa-user-plus"></i> Add New Customer`;
+            document.getElementById('cust-submit-btn').innerHTML = `<i class="fa-solid fa-check mr-1"></i> Save`;
             document.getElementById('cust-cancel-edit-btn').classList.add('hidden');
         };
 
@@ -1283,8 +1299,8 @@
             document.getElementById('cust-type-input').value = cust.type || 'Regular';
             document.getElementById('cust-date-input').value = cust.joinDate || new Date().toISOString().split('T')[0];
 
-            document.getElementById('cust-form-title').innerHTML = `<i class="fa-solid fa-user-pen"></i> কাস্টমার তথ্য এডিট করুন (ID: ${cust.id})`;
-            document.getElementById('cust-submit-btn').innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i> আপডেট করুন`;
+            document.getElementById('cust-form-title').innerHTML = `<i class="fa-solid fa-user-pen"></i> Edit Customer (ID: ${cust.id})`;
+            document.getElementById('cust-submit-btn').innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i> Update`;
             document.getElementById('cust-cancel-edit-btn').classList.remove('hidden');
 
             document.getElementById('customer-modal').scrollTop = 0;
@@ -1305,7 +1321,7 @@
             if (photoInput.files && photoInput.files[0]) {
                 const file = photoInput.files[0];
                 if (file.size > 100 * 1024) {
-                    alert('ছবির আকার সর্বোচ্চ 100 KB হতে পারবে! আপনার ছবি ' + (file.size / 1024).toFixed(1) + ' KB.');
+                    alert('Image size must be less than 100 KB! Your image is ' + (file.size / 1024).toFixed(1) + ' KB.');
                     return;
                 }
 
@@ -1317,7 +1333,6 @@
             }
 
             if (editId) {
-                // Update Existing Customer
                 const idx = window.customers.findIndex(c => c.id === editId);
                 if (idx !== -1) {
                     window.customers[idx].name = name;
@@ -1328,9 +1343,8 @@
                         window.customers[idx].photo = photoBase64;
                     }
                 }
-                alert('কাস্টমার ডেটা সফলভাবে আপডেট করা হয়েছে!');
+                alert('Customer data updated successfully!');
             } else {
-                // Add New Customer
                 const customerId = 'CUST-' + Math.floor(1000 + Math.random() * 9000);
                 const newCust = {
                     id: customerId,
@@ -1341,7 +1355,7 @@
                     photo: photoBase64
                 };
                 window.customers.push(newCust);
-                alert('নতুন কাস্টমার সফলভাবে সেভ হয়েছে!');
+                alert('Customer saved successfully!');
             }
 
             await syncCustomersToFirebase();
@@ -1361,7 +1375,7 @@
             }
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">কোন কাস্টমার ডেটা পাওয়া যায়নি।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No customer records found.</td></tr>`;
                 return;
             }
 
@@ -1381,9 +1395,9 @@
                     <td class="p-3 text-center">
                         ${c.photo ? `
                             <button onclick="viewCustomerPhoto('${c.photo}', '${c.name}')" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded transition flex items-center gap-1 mx-auto">
-                                <i class="fa-solid fa-image"></i> ভিউ ফটো
+                                <i class="fa-solid fa-image"></i> View Photo
                             </button>
-                        ` : `<span class="text-slate-500 text-[11px]">নাই</span>`}
+                        ` : `<span class="text-slate-500 text-[11px]">N/A</span>`}
                     </td>
                     <td class="p-3 text-center">
                         <div class="flex items-center justify-center gap-2">
@@ -1401,7 +1415,7 @@
         };
 
         window.deleteCustomer = async function(id) {
-            if (confirm('আপনি কি এই কাস্টমারের ডেটা মুছে ফেলতে চান?')) {
+            if (confirm('Are you sure you want to delete this customer?')) {
                 window.customers = window.customers.filter(c => c.id !== id);
                 await syncCustomersToFirebase();
             }
@@ -1419,7 +1433,7 @@
 
         window.exportCustomersToExcel = function() {
             if (window.customers.length === 0) {
-                alert('এক্সপোর্ট করার মত কোন কাস্টমার ডেটা নেই!');
+                alert('No customer data available to export!');
                 return;
             }
 
@@ -1438,7 +1452,7 @@
             XLSX.writeFile(workbook, "Customer_Data_SumonComputer.xlsx");
         };
 
-        // ================= LOGIN DATA MANAGEMENT & FILTERING =================
+        // LOGIN DATA MANAGEMENT
         window.renderLoginDynamicFields = function() {
             const cat = document.getElementById('login-category-input').value;
             const container = document.getElementById('login-dynamic-fields');
@@ -1446,11 +1460,11 @@
 
             let fieldsHTML = `
                 <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">নাম *</label>
-                    <input type="text" id="ld-name" required placeholder="নাম..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-[11px] text-slate-400 mb-1">Name *</label>
+                    <input type="text" id="ld-name" required placeholder="Name..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">মোবাইল নম্বর *</label>
+                    <label class="block text-[11px] text-slate-400 mb-1">Mobile Number *</label>
                     <input type="text" id="ld-phone" required placeholder="017xxxxxxxx" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
             `;
@@ -1458,38 +1472,38 @@
             if (cat === 'Tax') {
                 fieldsHTML += `
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">টিন নম্বর</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">TIN Number</label>
                         <input type="text" id="ld-tin" placeholder="TIN No." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">এনআইডি নং</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">NID Number</label>
                         <input type="text" id="ld-nid" placeholder="NID No." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                 `;
             } else if (cat === 'VAT') {
                 fieldsHTML += `
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">ইমেইল নম্বর</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">Email</label>
                         <input type="email" id="ld-email" placeholder="example@mail.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">টিন নম্বর</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">TIN Number</label>
                         <input type="text" id="ld-tin" placeholder="TIN No." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">এনআইডি নং</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">NID Number</label>
                         <input type="text" id="ld-nid" placeholder="NID No." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">সাবমিট আইডি</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">Submit ID</label>
                         <input type="text" id="ld-submit-id" placeholder="Submit ID" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">সিকিউরিটি প্রশ্ন</label>
-                        <input type="text" id="ld-security-ques" placeholder="Security Question & Answer" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-[11px] text-slate-400 mb-1">Security Question</label>
+                        <input type="text" id="ld-security-ques" placeholder="Security Q & A" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">বিন নম্বর</label>
+                        <label class="block text-[11px] text-slate-400 mb-1">BIN Number</label>
                         <input type="text" id="ld-bin" placeholder="BIN No." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                 `;
@@ -1497,11 +1511,11 @@
 
             fieldsHTML += `
                 <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">ইউজার আইডি</label>
-                    <input type="text" id="ld-userid" placeholder="User ID / Username" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-[11px] text-slate-400 mb-1">User ID</label>
+                    <input type="text" id="ld-userid" placeholder="User ID" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
-                    <label class="block text-[11px] text-slate-400 mb-1">পাসওয়ার্ড</label>
+                    <label class="block text-[11px] text-slate-400 mb-1">Password</label>
                     <input type="text" id="ld-pass" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
             `;
@@ -1514,8 +1528,8 @@
             document.getElementById('login-category-input').value = 'Tax';
             window.renderLoginDynamicFields();
             
-            document.getElementById('login-form-title').innerHTML = `<i class="fa-solid fa-key"></i> নতুন লগইন তথ্য যুক্ত করুন`;
-            document.getElementById('login-submit-btn').innerHTML = `<i class="fa-solid fa-check mr-1"></i> সেভ করুন`;
+            document.getElementById('login-form-title').innerHTML = `<i class="fa-solid fa-key"></i> Add New Login Info`;
+            document.getElementById('login-submit-btn').innerHTML = `<i class="fa-solid fa-check mr-1"></i> Save`;
             document.getElementById('login-cancel-edit-btn').classList.add('hidden');
         };
 
@@ -1544,14 +1558,14 @@
                         id: editId, category, name, phone, userId, password, tin, nid, email, submitId, securityQues, bin
                     };
                 }
-                alert('লগইন তথ্য সফলভাবে আপডেট করা হয়েছে!');
+                alert('Login info updated successfully!');
             } else {
                 const newId = 'LGN-' + Date.now();
                 const newLoginObj = {
                     id: newId, category, name, phone, userId, password, tin, nid, email, submitId, securityQues, bin
                 };
                 window.loginDataList.push(newLoginObj);
-                alert('নতুন লগইন তথ্য সফলভাবে সেভ হয়েছে!');
+                alert('Login info saved successfully!');
             }
 
             await syncLoginDataToFirebase();
@@ -1581,7 +1595,7 @@
             }
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">কোন লগইন তথ্য পাওয়া যায়নি।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No login information found.</td></tr>`;
                 return;
             }
 
@@ -1595,10 +1609,10 @@
                 if (l.bin) detailsText.push(`BIN: ${l.bin}`);
 
                 const catBadge = l.category === 'Tax' 
-                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">আয়কর</span>'
+                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">Tax</span>'
                     : l.category === 'VAT'
-                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">ভ্যাট</span>'
-                    : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">অন্যান্য</span>';
+                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">VAT</span>'
+                    : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">Others</span>';
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-700/40 transition border-b border-slate-700/40";
@@ -1644,39 +1658,21 @@
             if (document.getElementById('ld-security-ques')) document.getElementById('ld-security-ques').value = item.securityQues || '';
             if (document.getElementById('ld-bin')) document.getElementById('ld-bin').value = item.bin || '';
 
-            document.getElementById('login-form-title').innerHTML = `<i class="fa-solid fa-key"></i> লগইন তথ্য এডিট করুন`;
-            document.getElementById('login-submit-btn').innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i> আপডেট করুন`;
+            document.getElementById('login-form-title').innerHTML = `<i class="fa-solid fa-key"></i> Edit Login Info`;
+            document.getElementById('login-submit-btn').innerHTML = `<i class="fa-solid fa-arrows-rotate mr-1"></i> Update`;
             document.getElementById('login-cancel-edit-btn').classList.remove('hidden');
 
             document.getElementById('customer-modal').scrollTop = 0;
         };
 
         window.deleteLoginData = async function(id) {
-            if (confirm('আপনি কি এই লগইন তথ্যটি মুছে ফেলতে চান?')) {
+            if (confirm('Are you sure you want to delete this login information?')) {
                 window.loginDataList = window.loginDataList.filter(l => l.id !== id);
                 await syncLoginDataToFirebase();
             }
         };
 
         // UI HELPERS
-        window.toggleLanguage = function() {
-            window.currentLang = window.currentLang === 'bn' ? 'en' : 'bn';
-            document.getElementById('lang-btn-auth').innerText = window.currentLang === 'bn' ? 'English' : 'বাংলা';
-            document.getElementById('lang-btn-app').innerText = window.currentLang === 'bn' ? 'English' : 'বাংলা';
-            window.applyLanguage();
-        };
-
-        window.applyLanguage = function() {
-            document.querySelectorAll('[data-bn]').forEach(el => {
-                if (window.currentLang === 'bn') {
-                    el.innerText = el.getAttribute('data-bn');
-                } else if (el.getAttribute('data-en')) {
-                    el.innerText = el.getAttribute('data-en');
-                }
-            });
-            window.renderDailyRecords();
-        };
-
         window.switchAuthTab = function(tab) {
             showAuthError('');
             const loginForm = document.getElementById('login-form');
@@ -1690,13 +1686,13 @@
                 signupForm.classList.add('hidden');
                 tabLogin.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 transition";
                 tabSignup.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
-                subtitle.innerText = window.currentLang === 'bn' ? "হিসাব ব্যবস্থাপনা সিস্টেমে প্রবেশ করুন" : "Sign in to account management system";
+                subtitle.innerText = "Sign in to account management system";
             } else {
                 loginForm.classList.add('hidden');
                 signupForm.classList.remove('hidden');
                 tabSignup.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400 transition";
                 tabLogin.className = "flex-1 py-2 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
-                subtitle.innerText = window.currentLang === 'bn' ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "Create a new account";
+                subtitle.innerText = "Create a new account";
             }
         };
 
@@ -1767,10 +1763,10 @@
                         <button onclick="openJobModal(${rec.id})" class="text-xs bg-slate-900 border border-slate-700 hover:border-blue-500 px-3 py-1.5 rounded-lg text-left flex items-center justify-between w-full max-w-md group transition">
                             <span class="text-slate-300 group-hover:text-blue-400">
                                 <i class="fa-solid fa-list-ol mr-1.5 text-blue-400"></i>
-                                ${filledJobsCount} ${window.currentLang === 'bn' ? 'টি কাজ অন্তর্ভুক্ত' : 'Jobs Entered'}
+                                ${filledJobsCount} Jobs Entered
                             </span>
                             <span class="text-[10px] bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">
-                                ${window.currentLang === 'bn' ? 'এডিট করুন (২৫ ঘর)' : 'Edit (25 Fields)'}
+                                Edit (25 Fields)
                             </span>
                         </button>
                     </td>
@@ -1834,7 +1830,7 @@
         };
 
         window.deleteRecord = function(id) {
-            if (confirm(window.currentLang === 'bn' ? 'আপনি কি সত্যিই এই দিনের এন্ট্রি মুছতে চান?' : 'Are you sure you want to delete this record?')) {
+            if (confirm('Are you sure you want to delete this daily entry?')) {
                 window.records = window.records.filter(r => r && r.id !== id);
                 syncDataToFirebase();
             }
@@ -1860,7 +1856,7 @@
                 div.className = "flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-700/80";
                 div.innerHTML = `
                     <span class="text-[11px] font-bold text-slate-500 w-5 text-right">${idx + 1}.</span>
-                    <input type="text" placeholder="${window.currentLang === 'bn' ? 'কাজের বিবরণ ' + (idx + 1) : 'Job ' + (idx + 1) + ' description'}" 
+                    <input type="text" placeholder="Job ${idx + 1} description" 
                         value="${job.desc || ''}" 
                         id="job-desc-${idx}"
                         class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white flex-1 focus:outline-none focus:border-blue-500">
@@ -1891,16 +1887,17 @@
         window.saveJobModalData = function() {
             if (!window.editingRecordId) return;
             const index = window.records.findIndex(r => r && r.id === window.editingRecordId);
-            if (index !== -1) {
-                const updatedJobs = [];
-                for (let i = 0; i < 25; i++) {
-                    const desc = document.getElementById(`job-desc-${i}`).value;
-                    const amount = document.getElementById(`job-amt-${i}`).value;
-                    updatedJobs.push({ desc, amount });
-                }
-                window.records[index].jobs = updatedJobs;
-                syncDataToFirebase();
+            if (index === -1) return;
+
+            const updatedJobs = [];
+            for (let i = 0; i < 25; i++) {
+                const desc = document.getElementById(`job-desc-${i}`).value.trim();
+                const amount = parseFloat(document.getElementById(`job-amt-${i}`).value) || '';
+                updatedJobs.push({ desc, amount });
             }
+
+            window.records[index].jobs = updatedJobs;
+            syncDataToFirebase();
             window.closeJobModal();
         };
 
@@ -1909,11 +1906,10 @@
             window.editingRecordId = null;
         };
 
-        // ================= INVOICE MANAGEMENT =================
+        // INVOICE MODAL & ACTIONS
         window.openInvoiceModal = function() {
             document.getElementById('invoice-modal').classList.remove('hidden');
             window.switchInvoiceTab('create');
-            window.renderInvoiceList();
         };
 
         window.closeInvoiceModal = function() {
@@ -1922,62 +1918,91 @@
         };
 
         window.switchInvoiceTab = function(tab) {
-            const createBtn = document.getElementById('tab-btn-inv-create');
-            const listBtn = document.getElementById('tab-btn-inv-list');
-            const createContent = document.getElementById('inv-tab-create-content');
-            const listContent = document.getElementById('inv-tab-list-content');
+            const btnCreate = document.getElementById('tab-btn-inv-create');
+            const btnList = document.getElementById('tab-btn-inv-list');
+            const contentCreate = document.getElementById('inv-tab-create-content');
+            const contentList = document.getElementById('inv-tab-list-content');
 
             if (tab === 'create') {
-                createBtn.className = "px-3 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition";
-                listBtn.className = "px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition";
-                createContent.classList.remove('hidden');
-                listContent.classList.add('hidden');
+                btnCreate.className = "px-3 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition";
+                btnList.className = "px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition";
+                contentCreate.classList.remove('hidden');
+                contentList.classList.add('hidden');
             } else {
-                listBtn.className = "px-3 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition";
-                createBtn.className = "px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition";
-                listContent.classList.remove('hidden');
-                createContent.classList.add('hidden');
+                btnList.className = "px-3 py-1 rounded text-xs font-semibold bg-emerald-600 text-white transition";
+                btnCreate.className = "px-3 py-1 rounded text-xs font-semibold text-slate-400 hover:text-white transition";
+                contentList.classList.remove('hidden');
+                contentCreate.classList.add('hidden');
                 window.renderInvoiceList();
             }
-        };
-
-        window.resetInvoiceForm = function() {
-            document.getElementById('editing-invoice-id').value = '';
-            document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('inv-customer-name').value = '';
-            document.getElementById('inv-customer-phone').value = '';
-            document.getElementById('inv-discount').value = '0';
-            document.getElementById('inv-advance').value = '0';
-            window.initInvoiceModalRows();
-            window.calculateInvoiceTotals();
         };
 
         window.initInvoiceModalRows = function() {
             const container = document.getElementById('invoice-items');
             if (!container) return;
             container.innerHTML = '';
-            window.addInvoiceItemRow();
-            window.addInvoiceItemRow();
+            for (let i = 1; i <= 3; i++) {
+                window.addInvoiceItemRow();
+            }
         };
 
-        window.addInvoiceItemRow = function(descVal = '', amountVal = '') {
+        window.addInvoiceItemRow = function() {
             const container = document.getElementById('invoice-items');
-            const row = document.createElement('div');
-            row.className = "flex gap-2 items-center";
-            row.innerHTML = `
-                <input type="text" value="${descVal}" placeholder="${window.currentLang === 'bn' ? 'কাজের বিবরণ (যেমন: অনলাইন আবেদন, প্রিন্ট...)' : 'Work description'}" class="inv-desc bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white flex-1 focus:outline-none focus:border-blue-500">
-                <input type="number" value="${amountVal}" placeholder="মূল্য ৳" oninput="calculateInvoiceTotals()" class="inv-amount bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs md:text-sm text-white w-28 text-right focus:outline-none focus:border-blue-500">
-                <button onclick="this.parentElement.remove(); calculateInvoiceTotals();" class="text-slate-500 hover:text-rose-400 px-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+            if (!container) return;
+
+            const currentCount = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-700/60 inv-item-row";
+            div.innerHTML = `
+                <div class="sm:col-span-1 text-center font-bold text-xs text-slate-400 sl-no">${currentCount}</div>
+                <div class="sm:col-span-5">
+                    <input type="text" placeholder="Job details" class="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs text-white item-desc focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="number" value="1" min="1" oninput="calculateInvoiceTotals()" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-center text-white item-qty focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="sm:col-span-2">
+                    <input type="number" placeholder="0" oninput="calculateInvoiceTotals()" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-right text-white item-price focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="sm:col-span-2 flex items-center justify-between gap-1">
+                    <input type="number" readonly value="0" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-right font-semibold text-emerald-400 item-total">
+                    <button onclick="removeInvoiceItemRow(this)" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remove Item">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             `;
-            container.appendChild(row);
+            container.appendChild(div);
+            window.reindexInvoiceRows();
+        };
+
+        window.removeInvoiceItemRow = function(btn) {
+            const row = btn.closest('.inv-item-row');
+            if (row) {
+                row.remove();
+                window.reindexInvoiceRows();
+                window.calculateInvoiceTotals();
+            }
+        };
+
+        window.reindexInvoiceRows = function() {
+            const rows = document.querySelectorAll('.inv-item-row');
+            rows.forEach((row, idx) => {
+                const slEl = row.querySelector('.sl-no');
+                if (slEl) slEl.innerText = idx + 1;
+            });
         };
 
         window.calculateInvoiceTotals = function() {
-            const amounts = document.querySelectorAll('.inv-amount');
+            const rows = document.querySelectorAll('.inv-item-row');
             let subtotal = 0;
-            amounts.forEach(inp => subtotal += parseFloat(inp.value) || 0);
+
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const lineTotal = qty * price;
+                row.querySelector('.item-total').value = lineTotal;
+                subtotal += lineTotal;
+            });
 
             const discount = parseFloat(document.getElementById('inv-discount').value) || 0;
             const advance = parseFloat(document.getElementById('inv-advance').value) || 0;
@@ -1988,100 +2013,119 @@
             document.getElementById('inv-subtotal').value = subtotal;
             document.getElementById('inv-net-total-display').innerText = `৳ ${netTotal.toFixed(2)}`;
             document.getElementById('inv-due').value = due;
+        };
 
-            return { subtotal, discount, advance, netTotal, due };
+        window.resetInvoiceForm = function() {
+            document.getElementById('editing-invoice-id').value = '';
+            document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('inv-customer-name').value = '';
+            document.getElementById('inv-customer-phone').value = '';
+            document.getElementById('inv-discount').value = 0;
+            document.getElementById('inv-advance').value = 0;
+            window.initInvoiceModalRows();
+            window.calculateInvoiceTotals();
         };
 
         window.saveAndPrintInvoice = async function() {
-            const totals = window.calculateInvoiceTotals();
-            const editId = document.getElementById('editing-invoice-id').value;
-            const dateStr = document.getElementById('inv-date').value || new Date().toISOString().split('T')[0];
-            const invoiceId = editId || ('SC-' + Math.floor(100000 + Math.random() * 900000));
-            const custName = document.getElementById('inv-customer-name').value.trim() || 'N/A';
-            const custPhone = document.getElementById('inv-customer-phone').value.trim() || 'N/A';
+            const date = document.getElementById('inv-date').value;
+            const customerName = document.getElementById('inv-customer-name').value.trim();
+            const customerPhone = document.getElementById('inv-customer-phone').value.trim();
 
-            const descs = document.querySelectorAll('.inv-desc');
-            const amounts = document.querySelectorAll('.inv-amount');
-            
-            let items = [];
-            descs.forEach((d, i) => {
-                const val = parseFloat(amounts[i].value) || 0;
-                if (d.value.trim() !== '' || val > 0) {
-                    items.push({ desc: d.value || 'সেবা/কাজ', amount: val });
+            if (!customerName) {
+                alert('Please enter customer name.');
+                return;
+            }
+
+            const items = [];
+            document.querySelectorAll('.inv-item-row').forEach(row => {
+                const desc = row.querySelector('.item-desc').value.trim();
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const total = qty * price;
+
+                if (desc && qty > 0) {
+                    items.push({ desc, qty, price, total });
                 }
             });
 
             if (items.length === 0) {
-                alert('অনুগ্রহ করে অন্তত একটি কাজের বিবরণ ও মূল্য প্রদান করুন!');
+                alert('Please add at least one job item.');
                 return;
             }
 
-            const invoiceObj = {
+            const subtotal = parseFloat(document.getElementById('inv-subtotal').value) || 0;
+            const discount = parseFloat(document.getElementById('inv-discount').value) || 0;
+            const advance = parseFloat(document.getElementById('inv-advance').value) || 0;
+            const netTotal = Math.max(0, subtotal - discount);
+            const due = parseFloat(document.getElementById('inv-due').value) || 0;
+
+            const editId = document.getElementById('editing-invoice-id').value;
+            let invoiceId = editId || 'INV-' + Math.floor(100000 + Math.random() * 900000);
+
+            const invObj = {
                 id: invoiceId,
-                date: dateStr,
-                customerName: custName,
-                customerPhone: custPhone,
-                items: items,
-                subtotal: totals.subtotal,
-                discount: totals.discount,
-                paid: totals.advance,
-                netTotal: totals.netTotal,
-                due: totals.due
+                date,
+                customerName,
+                customerPhone,
+                items,
+                subtotal,
+                discount,
+                advance,
+                netTotal,
+                due
             };
 
             if (editId) {
                 const idx = window.invoices.findIndex(i => i.id === editId);
-                if (idx !== -1) window.invoices[idx] = invoiceObj;
+                if (idx !== -1) window.invoices[idx] = invObj;
             } else {
-                window.invoices.push(invoiceObj);
+                window.invoices.push(invObj);
             }
 
             await syncInvoicesToFirebase();
-            window.triggerPrintInvoice(invoiceObj);
+            window.printInvoiceData(invObj);
+            window.resetInvoiceForm();
         };
 
-        window.triggerPrintInvoice = function(inv) {
-            document.getElementById('print-date').innerText = inv.date;
-            document.getElementById('print-inv-id').innerText = inv.id;
-            document.getElementById('print-cust-name').innerText = inv.customerName;
-            document.getElementById('print-cust-phone').innerText = inv.customerPhone;
+        window.printInvoiceData = function(inv) {
+            document.querySelectorAll('.print-date').forEach(el => el.innerText = inv.date);
+            document.querySelectorAll('.print-inv-id').forEach(el => el.innerText = inv.id);
+            document.querySelectorAll('.print-cust-name').forEach(el => el.innerText = inv.customerName);
+            document.querySelectorAll('.print-cust-phone').forEach(el => el.innerText = inv.customerPhone || 'N/A');
 
-            const tbody = document.getElementById('print-items-body');
-            tbody.innerHTML = '';
+            document.querySelectorAll('.print-subtotal').forEach(el => el.innerText = `৳ ${inv.subtotal.toFixed(2)}`);
+            document.querySelectorAll('.print-discount').forEach(el => el.innerText = `- ৳ ${inv.discount.toFixed(2)}`);
+            document.querySelectorAll('.print-advance').forEach(el => el.innerText = `- ৳ ${inv.advance.toFixed(2)}`);
+            document.querySelectorAll('.print-net-total').forEach(el => el.innerText = `৳ ${inv.netTotal.toFixed(2)}`);
+            document.querySelectorAll('.print-due').forEach(el => el.innerText = `৳ ${inv.due.toFixed(2)}`);
 
-            inv.items.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-200";
-                tr.innerHTML = `
-                    <td class="p-2 border border-gray-200 text-center">${idx + 1}</td>
-                    <td class="p-2 border border-gray-200">${item.desc}</td>
-                    <td class="p-2 border border-gray-200 text-right">৳ ${item.amount.toFixed(2)}</td>
-                `;
-                tbody.appendChild(tr);
+            document.querySelectorAll('.print-items-body').forEach(tbody => {
+                tbody.innerHTML = '';
+                inv.items.forEach((item, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-200 text-[11px]";
+                    tr.innerHTML = `
+                        <td class="p-1 text-center border border-black">${idx + 1}</td>
+                        <td class="p-1 text-left border border-black">${item.desc}</td>
+                        <td class="p-1 text-center border border-black">${item.qty}</td>
+                        <td class="p-1 text-right border border-black">৳ ${item.price.toFixed(2)}</td>
+                        <td class="p-1 text-right border border-black">৳ ${item.total.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
 
-            document.getElementById('print-subtotal').innerText = `৳ ${inv.subtotal.toFixed(2)}`;
-            document.getElementById('print-discount').innerText = `- ৳ ${inv.discount.toFixed(2)}`;
-            document.getElementById('print-advance').innerText = `- ৳ ${inv.paid.toFixed(2)}`;
-            document.getElementById('print-net-total').innerText = `৳ ${inv.netTotal.toFixed(2)}`;
-            document.getElementById('print-due').innerText = `৳ ${inv.due.toFixed(2)}`;
-
-            // Updated QR Code Data: Only ID, Date, Name, Phone, Total, Paid, Due
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            
-            const qrData = `ID: ${inv.id}\nDate: ${inv.date}\nName: ${inv.customerName}\nPhone: ${inv.customerPhone}\nTotal Bill: Tk. ${inv.netTotal}\nPaid Bill: Tk. ${inv.paid}\nDue Bill: Tk. ${inv.due}`;
-
-            if (window.QRCode) {
-                new QRCode(qrContainer, {
-                    text: qrData,
-                    width: 85,
-                    height: 85,
+            document.querySelectorAll('.qrcode-container').forEach(container => {
+                container.innerHTML = '';
+                new QRCode(container, {
+                    text: `Invoice ID: ${inv.id} | Date: ${inv.date} | Customer: ${inv.customerName} | Net Total: ${inv.netTotal} TK`,
+                    width: 55,
+                    height: 55,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
                 });
-            }
+            });
 
             setTimeout(() => {
                 window.print();
@@ -2089,7 +2133,7 @@
         };
 
         window.renderInvoiceList = function() {
-            const searchText = document.getElementById('inv-search-input')?.value.toLowerCase().trim() || '';
+            const searchText = document.getElementById('inv-search-input').value.toLowerCase().trim();
             const tbody = document.getElementById('invoice-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -2098,14 +2142,14 @@
 
             if (searchText) {
                 list = list.filter(i => 
-                    (i.id && i.id.toLowerCase().includes(searchText)) ||
-                    (i.customerName && i.customerName.toLowerCase().includes(searchText)) ||
+                    i.id.toLowerCase().includes(searchText) ||
+                    i.customerName.toLowerCase().includes(searchText) ||
                     (i.customerPhone && i.customerPhone.includes(searchText))
                 );
             }
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">কোন সেভ করা ইনভয়েজ পাওয়া যায়নি।</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">No invoice records found.</td></tr>`;
                 return;
             }
 
@@ -2116,13 +2160,13 @@
                     <td class="p-3 font-mono text-emerald-400 font-bold">${i.id}</td>
                     <td class="p-3">${i.date}</td>
                     <td class="p-3 font-semibold text-white">${i.customerName}</td>
-                    <td class="p-3">${i.customerPhone}</td>
-                    <td class="p-3 text-right font-semibold text-slate-100">৳ ${i.netTotal.toFixed(2)}</td>
-                    <td class="p-3 text-right text-emerald-400">৳ ${i.paid.toFixed(2)}</td>
+                    <td class="p-3">${i.customerPhone || 'N/A'}</td>
+                    <td class="p-3 text-right font-bold text-white">৳ ${i.netTotal.toFixed(2)}</td>
+                    <td class="p-3 text-right text-emerald-400">৳ ${i.advance.toFixed(2)}</td>
                     <td class="p-3 text-right text-rose-400">৳ ${i.due.toFixed(2)}</td>
                     <td class="p-3 text-center">
                         <div class="flex items-center justify-center gap-2">
-                            <button onclick="triggerPrintInvoiceById('${i.id}')" class="text-emerald-400 hover:text-emerald-300 transition" title="Print">
+                            <button onclick="reprintInvoice('${i.id}')" class="text-emerald-400 hover:text-emerald-300 transition" title="Reprint">
                                 <i class="fa-solid fa-print"></i>
                             </button>
                             <button onclick="editInvoice('${i.id}')" class="text-amber-400 hover:text-amber-300 transition" title="Edit">
@@ -2138,9 +2182,11 @@
             });
         };
 
-        window.triggerPrintInvoiceById = function(id) {
+        window.reprintInvoice = function(id) {
             const inv = window.invoices.find(i => i.id === id);
-            if (inv) window.triggerPrintInvoice(inv);
+            if (inv) {
+                window.printInvoiceData(inv);
+            }
         };
 
         window.editInvoice = function(id) {
@@ -2148,27 +2194,29 @@
             if (!inv) return;
 
             document.getElementById('editing-invoice-id').value = inv.id;
-            document.getElementById('inv-date').value = inv.date || new Date().toISOString().split('T')[0];
-            document.getElementById('inv-customer-name').value = inv.customerName || '';
-            document.getElementById('inv-customer-phone').value = inv.customerPhone || '';
-            document.getElementById('inv-discount').value = inv.discount || 0;
-            document.getElementById('inv-advance').value = inv.paid || 0;
+            document.getElementById('inv-date').value = inv.date;
+            document.getElementById('inv-customer-name').value = inv.customerName;
+            document.getElementById('inv-customer-phone').value = inv.customerPhone;
+            document.getElementById('inv-discount').value = inv.discount;
+            document.getElementById('inv-advance').value = inv.advance;
 
             const container = document.getElementById('invoice-items');
             container.innerHTML = '';
-            
-            if (inv.items && inv.items.length > 0) {
-                inv.items.forEach(item => window.addInvoiceItemRow(item.desc, item.amount));
-            } else {
-                window.initInvoiceModalRows();
-            }
+
+            inv.items.forEach(item => {
+                window.addInvoiceItemRow();
+                const lastRow = container.lastElementChild;
+                lastRow.querySelector('.item-desc').value = item.desc;
+                lastRow.querySelector('.item-qty').value = item.qty;
+                lastRow.querySelector('.item-price').value = item.price;
+            });
 
             window.calculateInvoiceTotals();
             window.switchInvoiceTab('create');
         };
 
         window.deleteInvoice = async function(id) {
-            if (confirm('আপনি কি এই ইনভয়েজটি মুছে ফেলতে চান?')) {
+            if (confirm('Are you sure you want to delete this invoice?')) {
                 window.invoices = window.invoices.filter(i => i.id !== id);
                 await syncInvoicesToFirebase();
                 window.renderInvoiceList();
