@@ -83,6 +83,9 @@
             </div>
             <h2 class="text-xl font-bold text-white">System is in Sleep Mode</h2>
             <p class="text-xs text-slate-400">Enter Security PIN to Unlock</p>
+            <button type="button" id="sleep-fp-btn" onclick="window.FingerprintLock.unlockSleep()" class="hidden w-full items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-amber-300 font-semibold py-2.5 rounded-lg transition border border-amber-500/30">
+                <i class="fa-solid fa-fingerprint text-lg"></i> Unlock with Fingerprint
+            </button>
             <input type="password" id="sleep-pin-input" maxlength="6" placeholder="PIN" class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 text-center text-xl font-bold tracking-widest text-white focus:outline-none focus:border-amber-500">
             <button onclick="unlockSleepMode()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg transition shadow-lg shadow-amber-500/20">
                 Unlock
@@ -95,10 +98,11 @@
     <div id="auth-screen" class="flex items-center justify-center min-h-screen p-4 bg-slate-950">
         <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md relative">
             <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-3 shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-desktop text-2xl text-white"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-white tracking-wide">SUMON COMPUTER</h1>
+                <button type="button" onclick="openManagementLogin()" title="Management Panel" id="shop-logo-btn" class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-3 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-transform overflow-hidden">
+                    <i class="fa-solid fa-desktop text-2xl text-white" id="shop-logo-icon"></i>
+                    <img id="shop-logo-img" src="" class="hidden w-full h-full object-cover">
+                </button>
+                <h1 class="text-2xl font-bold text-white tracking-wide" id="shop-name-title">SUMON COMPUTER</h1>
                 <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">Sign in to Management System</p>
             </div>
 
@@ -112,6 +116,10 @@
             </div>
 
             <div id="auth-error" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/50 rounded-lg text-rose-400 text-xs text-center"></div>
+
+            <button type="button" id="login-fp-btn" onclick="window.FingerprintLock.loginWithFingerprint()" class="hidden w-full items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-blue-300 font-semibold py-2.5 rounded-lg transition border border-blue-500/30 mb-4">
+                <i class="fa-solid fa-fingerprint text-lg"></i> Login with Fingerprint
+            </button>
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -128,6 +136,10 @@
                         <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
+                <label id="login-fp-enable-wrap" class="hidden items-center gap-2 text-xs text-slate-400 select-none">
+                    <input type="checkbox" id="login-fp-enable" class="rounded bg-slate-900 border-slate-600 text-blue-500 focus:ring-0">
+                    <span>Enable Fingerprint Login on this device</span>
+                </label>
                 <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
                     <span>Log In</span>
                 </button>
@@ -161,11 +173,12 @@
     <div id="app-screen" class="hidden min-h-screen flex flex-col">
         <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-desktop text-lg text-white"></i>
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden">
+                    <i class="fa-solid fa-desktop text-lg text-white" id="app-shop-logo-icon"></i>
+                    <img id="app-shop-logo-img" src="" class="hidden w-full h-full object-cover">
                 </div>
                 <div>
-                    <h2 class="font-bold text-lg text-white leading-tight">SUMON COMPUTER</h2>
+                    <h2 class="font-bold text-lg text-white leading-tight" id="app-shop-name-title">SUMON COMPUTER</h2>
                     <p class="text-xs text-slate-400">Computer Operator Dashboard</p>
                 </div>
             </div>
@@ -736,6 +749,10 @@
                             <input type="password" id="sleep-pin-setting" maxlength="6" placeholder="4 digit" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-amber-500">
                         </div>
                     </div>
+                    <label id="sleep-fp-enable-wrap" class="hidden items-center gap-2 text-[10px] text-slate-400 select-none">
+                        <input type="checkbox" id="sleep-fp-enable" class="rounded bg-slate-900 border-slate-600 text-amber-500 focus:ring-0">
+                        <span>Enable Fingerprint Unlock on this device</span>
+                    </label>
                     <div class="flex gap-2">
                         <button onclick="saveSleepSettings()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold py-2 rounded-lg transition text-xs">
                             Save Settings
@@ -962,6 +979,188 @@
         </div>
     </div>
 
+    <!-- MANAGEMENT PANEL LOGIN MODAL -->
+    <div id="mgmt-login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[90]">
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 w-full max-w-sm text-center shadow-2xl space-y-4 relative">
+            <button type="button" onclick="closeManagementLogin()" class="absolute top-3 right-3 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-600/20 text-purple-400 rounded-2xl border border-purple-500/30 text-2xl">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white">Management Panel</h2>
+            <p class="text-xs text-slate-400">Enter the management password to continue</p>
+            <button type="button" id="mgmt-login-fp-btn" onclick="window.FingerprintLock.mgmtLoginWithFingerprint()" class="hidden w-full items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-purple-300 font-semibold py-2.5 rounded-lg transition border border-purple-500/30">
+                <i class="fa-solid fa-fingerprint text-lg"></i> Unlock with Fingerprint
+            </button>
+            <form onsubmit="submitManagementLogin(event)" class="space-y-3">
+                <input type="password" id="mgmt-login-pass" placeholder="Password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 text-center text-xl font-bold tracking-widest text-white focus:outline-none focus:border-purple-500">
+                <label id="mgmt-login-fp-enable-wrap" class="hidden items-center gap-2 text-xs text-slate-400 select-none justify-center">
+                    <input type="checkbox" id="mgmt-login-fp-enable" class="rounded bg-slate-900 border-slate-600 text-purple-500 focus:ring-0">
+                    <span>Enable Fingerprint Unlock on this device</span>
+                </label>
+                <button type="submit" id="mgmt-login-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-lg transition shadow-lg shadow-purple-600/20">
+                    <span>Enter Panel</span>
+                </button>
+            </form>
+            <p id="mgmt-login-error" class="text-xs text-rose-400 hidden"></p>
+        </div>
+    </div>
+
+    <!-- MANAGEMENT PANEL MODAL -->
+    <div id="mgmt-panel-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[90]">
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-6xl max-h-[92vh] overflow-y-auto shadow-2xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <i class="fa-solid fa-user-shield text-lg text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg text-white leading-tight">Management Panel</h2>
+                        <p class="text-xs text-slate-400">Admin Control Center</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeManagementPanel()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex border-b border-slate-700 px-6 gap-1 overflow-x-auto">
+                <button id="mgmt-tab-btn-report" onclick="switchMgmtTab('report')" class="px-4 py-3 text-xs font-semibold border-b-2 border-purple-500 text-purple-400 whitespace-nowrap transition">
+                    <i class="fa-solid fa-chart-column mr-1"></i> User Accounting
+                </button>
+                <button id="mgmt-tab-btn-access" onclick="switchMgmtTab('access')" class="px-4 py-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap transition">
+                    <i class="fa-solid fa-users-gear mr-1"></i> User Access Control
+                </button>
+                <button id="mgmt-tab-btn-shop" onclick="switchMgmtTab('shop')" class="px-4 py-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap transition">
+                    <i class="fa-solid fa-shop mr-1"></i> Shop Settings
+                </button>
+                <button id="mgmt-tab-btn-security" onclick="switchMgmtTab('security')" class="px-4 py-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap transition">
+                    <i class="fa-solid fa-key mr-1"></i> Security
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <!-- USER ACCOUNTING REPORT TAB -->
+                <div id="mgmt-tab-report-content" class="space-y-5">
+                    <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-700 flex flex-wrap items-end gap-4">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Select User</label>
+                            <select id="mgmt-report-user-select" onchange="onMgmtReportUserChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none min-w-[220px]"></select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">View by Month</label>
+                            <input type="month" id="mgmt-report-month" onchange="renderMgmtMonthReport()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">View by Fiscal Year</label>
+                            <select id="mgmt-report-fy-select" onchange="renderMgmtFiscalReport()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"></select>
+                        </div>
+                        <button type="button" onclick="downloadMgmtReportJPG()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-purple-600/20 ml-auto">
+                            <i class="fa-solid fa-file-image"></i> Save as JPG
+                        </button>
+                    </div>
+
+                    <div id="mgmt-report-capture" class="bg-white text-slate-900 rounded-xl p-6" style="font-family: Arial, Helvetica, sans-serif;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom: 3px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px;">
+                            <div>
+                                <h1 id="mgmt-report-shop-name" style="margin:0; font-size: 20px; font-weight: 900; color:#0f172a;">SUMON COMPUTER</h1>
+                                <p style="margin:4px 0 0; font-size: 11px; color:#475569;">User Accounting Report</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p id="mgmt-report-username" style="margin:0; font-size: 14px; font-weight:800; color:#7c3aed;">User</p>
+                                <p id="mgmt-report-period" style="margin:4px 0 0; font-size: 12px; color:#475569;"></p>
+                                <p id="mgmt-report-generated" style="margin:2px 0 0; font-size: 10px; color:#94a3b8;"></p>
+                            </div>
+                        </div>
+
+                        <div id="mgmt-report-summary-cards" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4"></div>
+
+                        <table style="width:100%; border-collapse: collapse; font-size: 12px;" id="mgmt-report-table-wrap">
+                            <thead>
+                                <tr style="background:#0f172a; color:#ffffff;">
+                                    <th id="mgmt-report-col1-header" style="padding:7px; text-align:left; border:1px solid #0f172a;">Month</th>
+                                    <th style="padding:7px; text-align:right; border:1px solid #0f172a;">Total Income</th>
+                                    <th style="padding:7px; text-align:right; border:1px solid #0f172a;">User Share (50%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmt-report-monthly-body"></tbody>
+                        </table>
+
+                        <p style="margin-top:16px; font-size:10px; color:#94a3b8; text-align:center;">Generated by Management Panel</p>
+                    </div>
+                </div>
+
+                <!-- USER ACCESS CONTROL TAB -->
+                <div id="mgmt-tab-access-content" class="space-y-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-slate-400">Approve new sign-ups, and lock or delete existing user accounts.</p>
+                        <button type="button" onclick="loadManagementUsers()" class="text-xs text-purple-400 hover:underline">
+                            <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase tracking-wider text-[11px]">
+                                <tr>
+                                    <th class="p-3">Name</th>
+                                    <th class="p-3">Email</th>
+                                    <th class="p-3">Phone</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmt-access-table-body" class="divide-y divide-slate-700/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SHOP SETTINGS TAB -->
+                <div id="mgmt-tab-shop-content" class="space-y-4 hidden max-w-md">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Shop Name</label>
+                        <input type="text" id="mgmt-shop-name-input" placeholder="SUMON COMPUTER" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Shop Logo</label>
+                        <div class="flex items-center gap-3">
+                            <div class="w-16 h-16 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                <img id="mgmt-shop-logo-preview" class="hidden w-full h-full object-cover">
+                                <i id="mgmt-shop-logo-preview-icon" class="fa-solid fa-desktop text-slate-500"></i>
+                            </div>
+                            <input type="file" id="mgmt-shop-logo-input" accept="image/*" onchange="previewMgmtShopLogo(event)" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-600/30 file:text-purple-300 hover:file:bg-purple-600/50">
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveShopSettings()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-lg shadow-purple-600/20">
+                        <i class="fa-solid fa-check mr-1"></i> Save Shop Settings
+                    </button>
+                </div>
+
+                <!-- SECURITY TAB -->
+                <div id="mgmt-tab-security-content" class="space-y-4 hidden max-w-md">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Current Password</label>
+                        <input type="password" id="mgmt-sec-current-pass" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">New Password</label>
+                        <input type="password" id="mgmt-sec-new-pass" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Confirm New Password</label>
+                        <input type="password" id="mgmt-sec-confirm-pass" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <button type="button" onclick="changeManagementPassword()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow-lg shadow-purple-600/20">
+                        <i class="fa-solid fa-key mr-1"></i> Update Password
+                    </button>
+                    <p id="mgmt-sec-msg" class="text-xs hidden"></p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER CREDIT -->
     <footer class="py-4 text-center text-xs font-semibold text-slate-400">
         ***This Website Made and Maintenance by Hredoy Roy- 01518411872***
@@ -1014,6 +1213,192 @@
         window.editingRecordId = null;
         window.sleepTimer = null;
 
+        // ---------- Fingerprint / Biometric Lock ----------
+        // Uses the WebAuthn platform authenticator (fingerprint / Face ID / Android
+        // biometric unlock) as a device-bound unlock gate. On mobile or installed-app
+        // view, once a screen has been unlocked once with password/PIN and the user
+        // opts in, a matching "Login/Unlock with Fingerprint" button appears that
+        // re-verifies the person's fingerprint via the OS before re-using the
+        // credentials saved locally on that device.
+        window.FingerprintLock = (function () {
+            let supported = false;
+
+            function bufToBase64(buf) {
+                return btoa(String.fromCharCode(...new Uint8Array(buf)));
+            }
+            function base64ToBuf(b64) {
+                return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer;
+            }
+            function storageKey(scope) {
+                return `fp_cred_${scope}`;
+            }
+
+            function isMobileOrAppView() {
+                const narrow = window.matchMedia('(max-width: 767px)').matches;
+                const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                const mobileUA = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                return narrow || standalone || mobileUA;
+            }
+
+            async function init() {
+                try {
+                    supported = !!(window.PublicKeyCredential &&
+                        await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+                } catch (e) {
+                    supported = false;
+                }
+                refreshUI();
+                window.addEventListener('resize', refreshUI);
+            }
+
+            function eligible() {
+                return supported && isMobileOrAppView();
+            }
+
+            function hasEnrollment(scope) {
+                return !!localStorage.getItem(storageKey(scope));
+            }
+
+            async function enroll(scope, label, payload) {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const userId = crypto.getRandomValues(new Uint8Array(16));
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge,
+                        rp: { name: 'SUMON COMPUTER Management' },
+                        user: { id: userId, name: label || 'user', displayName: label || 'user' },
+                        pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+                        timeout: 60000
+                    }
+                });
+                if (!cred) throw new Error('Fingerprint enrollment was cancelled.');
+                const record = { credId: bufToBase64(cred.rawId), payload: btoa(unescape(encodeURIComponent(JSON.stringify(payload)))) };
+                localStorage.setItem(storageKey(scope), JSON.stringify(record));
+                refreshUI();
+            }
+
+            async function verify(scope) {
+                const raw = localStorage.getItem(storageKey(scope));
+                if (!raw) throw new Error('No fingerprint set up on this device yet.');
+                const record = JSON.parse(raw);
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const assertion = await navigator.credentials.get({
+                    publicKey: {
+                        challenge,
+                        allowCredentials: [{ id: base64ToBuf(record.credId), type: 'public-key' }],
+                        userVerification: 'required',
+                        timeout: 60000
+                    }
+                });
+                if (!assertion) throw new Error('Fingerprint verification failed.');
+                return JSON.parse(decodeURIComponent(escape(atob(record.payload))));
+            }
+
+            function clearEnrollment(scope) {
+                localStorage.removeItem(storageKey(scope));
+                refreshUI();
+            }
+
+            function refreshUI() {
+                const on = eligible();
+
+                // Main login screen
+                toggle('login-fp-btn', on && hasEnrollment('auth'));
+                toggle('login-fp-enable-wrap', on);
+
+                // Management panel login
+                toggle('mgmt-login-fp-btn', on && hasEnrollment('mgmt'));
+                toggle('mgmt-login-fp-enable-wrap', on);
+
+                // Sleep unlock screen
+                const uid = auth.currentUser ? auth.currentUser.uid : null;
+                toggle('sleep-fp-btn', on && !!uid && hasEnrollment(`sleep_${uid}`));
+                toggle('sleep-fp-enable-wrap', on && !!uid);
+            }
+
+            function toggle(id, show) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (show) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            }
+
+            // ---- Main app login ----
+            async function loginWithFingerprint() {
+                const btn = document.getElementById('login-fp-btn');
+                try {
+                    if (btn) btn.disabled = true;
+                    showAuthError('');
+                    const { email, pass } = await verify('auth');
+                    document.getElementById('login-user').value = email;
+                    document.getElementById('login-pass').value = pass;
+                    await signInWithEmailAndPassword(auth, email, pass);
+                } catch (err) {
+                    showAuthError(err.message || 'Fingerprint login failed.');
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+
+            // ---- Management panel login ----
+            async function mgmtLoginWithFingerprint() {
+                const btn = document.getElementById('mgmt-login-fp-btn');
+                const errEl = document.getElementById('mgmt-login-error');
+                try {
+                    if (btn) btn.disabled = true;
+                    errEl.classList.add('hidden');
+                    const { pass } = await verify('mgmt');
+                    document.getElementById('mgmt-login-pass').value = pass;
+                    window.closeManagementLogin();
+                    window.openManagementPanel();
+                } catch (err) {
+                    errEl.innerText = err.message || 'Fingerprint unlock failed.';
+                    errEl.classList.remove('hidden');
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+
+            // ---- Sleep unlock ----
+            async function unlockSleep() {
+                const uid = auth.currentUser ? auth.currentUser.uid : null;
+                const errEl = document.getElementById('sleep-error');
+                if (!uid) return;
+                try {
+                    const { pin } = await verify(`sleep_${uid}`);
+                    if (pin === window.currentUserData?.sleepPin) {
+                        document.getElementById('sleep-lock-screen').classList.add('hidden');
+                        setupSleepTimer();
+                    } else {
+                        errEl.innerText = 'Stored fingerprint PIN no longer matches. Please use your PIN.';
+                        errEl.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    errEl.innerText = err.message || 'Fingerprint unlock failed.';
+                    errEl.classList.remove('hidden');
+                }
+            }
+
+            return {
+                init,
+                eligible,
+                hasEnrollment,
+                enroll,
+                verify,
+                clearEnrollment,
+                refreshUI,
+                loginWithFingerprint,
+                mgmtLoginWithFingerprint,
+                unlockSleep
+            };
+        })();
+
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const ym = today.toISOString().slice(0, 7);
@@ -1023,6 +1408,7 @@
             window.initInvoiceModalRows();
             window.renderLoginDynamicFields();
             window.populateFiscalYearOptions();
+            window.FingerprintLock.init();
         });
 
         // Auth Listener
@@ -1052,6 +1438,17 @@
                         sleepMinutes: 0,
                         sleepPin: ''
                     };
+                }
+
+                if (window.currentUserData && (window.currentUserData.deleted || window.currentUserData.locked)) {
+                    await signOut(auth);
+                    showAuthError('Your account has been locked by management. Please contact the admin.');
+                    return;
+                }
+                if (window.currentUserData && window.currentUserData.pendingApproval) {
+                    await signOut(auth);
+                    showAuthError('Your account is pending management approval. Please wait for approval before logging in.');
+                    return;
                 }
 
                 updateUserUI();
@@ -1084,6 +1481,7 @@
                 });
 
                 setupSleepTimer();
+                window.FingerprintLock.refreshUI();
 
             } else {
                 window.currentUserData = null;
@@ -1094,6 +1492,7 @@
                 clearTimeout(window.sleepTimer);
                 document.getElementById('app-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('hidden');
+                window.FingerprintLock.refreshUI();
             }
         });
 
@@ -1108,6 +1507,16 @@
                 btn.disabled = true;
                 btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Processing...`;
                 await signInWithEmailAndPassword(auth, email, pass);
+
+                const enableFp = document.getElementById('login-fp-enable');
+                if (enableFp && enableFp.checked && window.FingerprintLock.eligible()) {
+                    try {
+                        await window.FingerprintLock.enroll('auth', email, { email, pass });
+                        enableFp.checked = false;
+                    } catch (fpErr) {
+                        console.warn('Fingerprint enrollment skipped:', fpErr.message);
+                    }
+                }
             } catch (err) {
                 showAuthError(err.message);
             } finally {
@@ -1133,8 +1542,12 @@
 
                 await updateProfile(user, { displayName: name });
 
-                const profileData = { name, email, phone, photoUrl: '', sleepMinutes: 0, sleepPin: '' };
+                const profileData = { name, email, phone, photoUrl: '', sleepMinutes: 0, sleepPin: '', pendingApproval: true, locked: false };
                 await set(ref(db, `users/${user.uid}/profile`), profileData);
+
+                await signOut(auth);
+                window.switchAuthTab('login');
+                showAuthError('Account created! Please wait for management approval before logging in.');
 
             } catch (err) {
                 showAuthError(err.message);
@@ -1242,7 +1655,19 @@
             window.currentUserData.sleepPin = pin;
 
             await set(ref(db, `users/${auth.currentUser.uid}/profile`), window.currentUserData);
-            
+
+            const enableFp = document.getElementById('sleep-fp-enable');
+            if (enableFp && enableFp.checked && pin && window.FingerprintLock.eligible()) {
+                try {
+                    await window.FingerprintLock.enroll(`sleep_${auth.currentUser.uid}`, window.currentUserData.name || 'user', { pin });
+                    enableFp.checked = false;
+                } catch (fpErr) {
+                    console.warn('Fingerprint enrollment skipped:', fpErr.message);
+                }
+            } else if (enableFp && enableFp.checked && !pin) {
+                enableFp.checked = false;
+            }
+
             const statusText = document.getElementById('sleep-status-text');
             if (minutes > 0) {
                 statusText.innerText = `Auto lock active after ${minutes} minutes.`;
@@ -1278,6 +1703,7 @@
             document.getElementById('sleep-lock-screen').classList.remove('hidden');
             document.getElementById('sleep-pin-input').value = '';
             document.getElementById('sleep-error').classList.add('hidden');
+            window.FingerprintLock.refreshUI();
         }
 
         window.unlockSleepMode = function() {
@@ -2416,6 +2842,526 @@
                 window.invoices = window.invoices.filter(i => i.id !== id);
                 await syncInvoicesToFirebase();
                 window.renderInvoiceList();
+            }
+        };
+
+        // ========================================================
+        // ===============  MANAGEMENT PANEL  ====================
+        // ========================================================
+
+        window.adminUsersData = {};
+        window.mgmtSelectedUid = null;
+
+        // Live shop branding (works even before login, on the public screen)
+        onValue(ref(db, 'shopSettings'), (snap) => {
+            const data = snap.val() || {};
+            const name = data.name || 'SUMON COMPUTER';
+            const logo = data.logo || '';
+            document.title = `${name} - Management System`;
+            applyShopBranding(name, logo);
+        });
+
+        function applyShopBranding(name, logo) {
+            document.querySelectorAll('#shop-name-title, #app-shop-name-title').forEach(el => el.innerText = name);
+
+            const pairs = [
+                { icon: document.getElementById('shop-logo-icon'), img: document.getElementById('shop-logo-img') },
+                { icon: document.getElementById('app-shop-logo-icon'), img: document.getElementById('app-shop-logo-img') }
+            ];
+            pairs.forEach(pair => {
+                if (!pair.icon || !pair.img) return;
+                if (logo) {
+                    pair.icon.classList.add('hidden');
+                    pair.img.src = logo;
+                    pair.img.classList.remove('hidden');
+                } else {
+                    pair.icon.classList.remove('hidden');
+                    pair.img.classList.add('hidden');
+                }
+            });
+
+            const reportShopName = document.getElementById('mgmt-report-shop-name');
+            if (reportShopName) reportShopName.innerText = name;
+        }
+
+        // ---------- Management Panel Login ----------
+        window.openManagementLogin = function() {
+            document.getElementById('mgmt-login-pass').value = '';
+            document.getElementById('mgmt-login-error').classList.add('hidden');
+            document.getElementById('mgmt-login-modal').classList.remove('hidden');
+            window.FingerprintLock.refreshUI();
+        };
+
+        window.closeManagementLogin = function() {
+            document.getElementById('mgmt-login-modal').classList.add('hidden');
+        };
+
+        window.submitManagementLogin = async function(e) {
+            e.preventDefault();
+            const entered = document.getElementById('mgmt-login-pass').value;
+            const btn = document.getElementById('mgmt-login-btn');
+            const errEl = document.getElementById('mgmt-login-error');
+            errEl.classList.add('hidden');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Checking...`;
+            try {
+                const snap = await get(ref(db, 'adminSettings/panelPassword'));
+                const stored = snap.exists() ? snap.val() : '123456';
+                if (entered === stored) {
+                    const enableFp = document.getElementById('mgmt-login-fp-enable');
+                    if (enableFp && enableFp.checked && window.FingerprintLock.eligible()) {
+                        try {
+                            await window.FingerprintLock.enroll('mgmt', 'Management Panel', { pass: entered });
+                            enableFp.checked = false;
+                        } catch (fpErr) {
+                            console.warn('Fingerprint enrollment skipped:', fpErr.message);
+                        }
+                    }
+                    window.closeManagementLogin();
+                    window.openManagementPanel();
+                } else {
+                    errEl.innerText = 'Incorrect password. Please try again.';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errEl.innerText = 'Could not verify password. Please check your connection.';
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Enter Panel</span>`;
+            }
+        };
+
+        // ---------- Management Panel Shell ----------
+        window.openManagementPanel = function() {
+            document.getElementById('mgmt-panel-modal').classList.remove('hidden');
+            window.switchMgmtTab('report');
+            window.loadManagementUsers();
+        };
+
+        window.closeManagementPanel = function() {
+            document.getElementById('mgmt-panel-modal').classList.add('hidden');
+        };
+
+        window.switchMgmtTab = function(tab) {
+            ['report', 'access', 'shop', 'security'].forEach(t => {
+                const btn = document.getElementById(`mgmt-tab-btn-${t}`);
+                const content = document.getElementById(`mgmt-tab-${t}-content`);
+                if (!btn || !content) return;
+                if (t === tab) {
+                    btn.className = "px-4 py-3 text-xs font-semibold border-b-2 border-purple-500 text-purple-400 whitespace-nowrap transition";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "px-4 py-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap transition";
+                    content.classList.add('hidden');
+                }
+            });
+        };
+
+        // ---------- Load all users (one-time snapshot) ----------
+        window.loadManagementUsers = async function() {
+            try {
+                const snap = await get(ref(db, 'users'));
+                window.adminUsersData = snap.val() || {};
+                window.renderMgmtAccessTable();
+                window.populateMgmtReportUserSelect();
+
+                const shopSnap = await get(ref(db, 'shopSettings'));
+                const shopData = shopSnap.val() || {};
+                document.getElementById('mgmt-shop-name-input').value = shopData.name || 'SUMON COMPUTER';
+                window._mgmtPendingLogoBase64 = null;
+                const preview = document.getElementById('mgmt-shop-logo-preview');
+                const previewIcon = document.getElementById('mgmt-shop-logo-preview-icon');
+                if (shopData.logo) {
+                    preview.src = shopData.logo;
+                    preview.classList.remove('hidden');
+                    previewIcon.classList.add('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                    previewIcon.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Failed to load user data. Please check your connection or Firebase database access rules.');
+            }
+        };
+
+        // ---------- Access Control Tab ----------
+        window.renderMgmtAccessTable = function() {
+            const tbody = document.getElementById('mgmt-access-table-body');
+            tbody.innerHTML = '';
+            const uids = Object.keys(window.adminUsersData || {});
+            const visibleUids = uids.filter(uid => !(window.adminUsersData[uid]?.profile?.deleted));
+
+            if (visibleUids.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No users found.</td></tr>`;
+                return;
+            }
+
+            visibleUids.forEach(uid => {
+                const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+                const name = profile.name || 'N/A';
+                const email = profile.email || 'N/A';
+                const phone = profile.phone || 'N/A';
+
+                let statusBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold">Active</span>`;
+                if (profile.pendingApproval) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">Pending Approval</span>`;
+                } else if (profile.locked) {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-semibold">Locked</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/40 transition border-b border-slate-700/40";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${name}</td>
+                    <td class="p-3">${email}</td>
+                    <td class="p-3">${phone}</td>
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-3">
+                            ${profile.pendingApproval ? `<button onclick="approveMgmtUser('${uid}')" class="text-emerald-400 hover:text-emerald-300 transition" title="Approve User"><i class="fa-solid fa-user-check"></i></button>` : ''}
+                            ${!profile.pendingApproval ? `<button onclick="toggleMgmtUserLock('${uid}')" class="${profile.locked ? 'text-amber-400 hover:text-amber-300' : 'text-slate-400 hover:text-white'} transition" title="${profile.locked ? 'Unlock User' : 'Lock User'}"><i class="fa-solid ${profile.locked ? 'fa-lock' : 'fa-lock-open'}"></i></button>` : ''}
+                            <button onclick="deleteMgmtUser('${uid}')" class="text-slate-500 hover:text-rose-400 transition" title="Delete User"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        window.approveMgmtUser = async function(uid) {
+            await set(ref(db, `users/${uid}/profile/pendingApproval`), false);
+            await window.loadManagementUsers();
+        };
+
+        window.toggleMgmtUserLock = async function(uid) {
+            const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+            await set(ref(db, `users/${uid}/profile/locked`), !profile.locked);
+            await window.loadManagementUsers();
+        };
+
+        window.deleteMgmtUser = async function(uid) {
+            const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+            if (!confirm(`Delete "${profile.name || 'this user'}" and all their data? This cannot be undone. Note: this removes their business data and permanently blocks their login; their Firebase login credential itself must additionally be removed from the Firebase Console, since that action requires server-side admin access.`)) return;
+
+            await set(ref(db, `users/${uid}`), {
+                profile: {
+                    name: profile.name || 'Deleted User',
+                    email: profile.email || '',
+                    deleted: true,
+                    locked: true
+                }
+            });
+            await window.loadManagementUsers();
+        };
+
+        // ---------- User Accounting Report Tab ----------
+        window.computeMonthSummary = function(recordsArr, monthStr) {
+            const list = (recordsArr || []).filter(r => r && r.date && r.date.startsWith(monthStr));
+            let total = 0, advance = 0;
+            list.forEach(rec => {
+                const jobs = rec.jobs || [];
+                const dailyTotal = jobs.reduce((s, j) => s + (parseFloat(j.amount) || 0), 0);
+                total += dailyTotal;
+                advance += (parseFloat(rec.advance) || 0);
+            });
+            const myShare = total * 0.5;
+            const ownerShare = total * 0.5;
+            const ownerDue = ownerShare - advance;
+            return { total, myShare, ownerShare, advance, ownerDue, count: list.length };
+        };
+
+        // Breaks a month's records down into one row per day (grouped by date),
+        // sorted chronologically, for the daily income breakdown table.
+        window.computeMonthDailyBreakdown = function(recordsArr, monthStr) {
+            const list = (recordsArr || []).filter(r => r && r.date && r.date.startsWith(monthStr));
+            const byDate = {};
+            list.forEach(rec => {
+                const jobs = rec.jobs || [];
+                const dailyTotal = jobs.reduce((s, j) => s + (parseFloat(j.amount) || 0), 0);
+                byDate[rec.date] = (byDate[rec.date] || 0) + dailyTotal;
+            });
+            const days = Object.keys(byDate).sort().map(date => ({
+                date,
+                total: byDate[date]
+            }));
+            const grandTotal = days.reduce((s, d) => s + d.total, 0);
+            return { days, grandTotal, myShareTotal: grandTotal * 0.5 };
+        };
+
+        window.computeFiscalYearData = function(recordsArr, fyStartYear) {
+            const fyStart = `${fyStartYear}-07-01`;
+            const fyEnd = `${parseInt(fyStartYear) + 1}-06-30`;
+            const monthLabels = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            const monthly = monthLabels.map((label, idx) => {
+                const y = idx < 6 ? parseInt(fyStartYear) : parseInt(fyStartYear) + 1;
+                const m = idx < 6 ? idx + 7 : idx - 5;
+                return { label: `${label} ${y}`, key: `${y}-${String(m).padStart(2, '0')}`, total: 0 };
+            });
+            (recordsArr || []).forEach(rec => {
+                if (!rec || !rec.date) return;
+                if (rec.date < fyStart || rec.date > fyEnd) return;
+                const jobs = rec.jobs || [];
+                const dailySum = jobs.reduce((s, j) => s + (parseFloat(j.amount) || 0), 0);
+                const monthKey = rec.date.slice(0, 7);
+                const monthEntry = monthly.find(m => m.key === monthKey);
+                if (monthEntry) monthEntry.total += dailySum;
+            });
+            const grandTotal = monthly.reduce((acc, m) => acc + m.total, 0);
+            return { fyStartYear: parseInt(fyStartYear), monthly, grandTotal, myShareTotal: grandTotal * 0.5 };
+        };
+
+        function mgmtToRecordsList(uid) {
+            const records = (window.adminUsersData[uid] && window.adminUsersData[uid].records) || [];
+            return Array.isArray(records) ? records : Object.values(records || {});
+        }
+
+        function mgmtSummaryCard(label, value, color) {
+            return `
+                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:10px; background:#f8fafc;">
+                    <p style="margin:0; font-size:9px; text-transform:uppercase; letter-spacing:0.5px; color:#64748b;">${label}</p>
+                    <p style="margin:4px 0 0; font-size:15px; font-weight:800; color:${color};">৳ ${value.toFixed(2)}</p>
+                </div>
+            `;
+        }
+
+        window.populateMgmtReportUserSelect = function() {
+            const select = document.getElementById('mgmt-report-user-select');
+            const prevVal = select.value;
+            select.innerHTML = '';
+            const uids = Object.keys(window.adminUsersData || {}).filter(uid => !(window.adminUsersData[uid]?.profile?.deleted));
+
+            if (uids.length === 0) {
+                select.innerHTML = '<option value="">No users found</option>';
+                document.getElementById('mgmt-report-summary-cards').innerHTML = '';
+                document.getElementById('mgmt-report-monthly-body').innerHTML = '';
+                return;
+            }
+
+            uids.forEach(uid => {
+                const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+                const opt = document.createElement('option');
+                opt.value = uid;
+                opt.innerText = `${profile.name || 'Unnamed'} (${profile.email || 'N/A'})`;
+                select.appendChild(opt);
+            });
+
+            if (uids.includes(prevVal)) select.value = prevVal;
+            window.onMgmtReportUserChange();
+        };
+
+        window.onMgmtReportUserChange = function() {
+            const uid = document.getElementById('mgmt-report-user-select').value;
+            window.mgmtSelectedUid = uid;
+            if (!uid) return;
+
+            const monthInput = document.getElementById('mgmt-report-month');
+            if (!monthInput.value) {
+                monthInput.value = new Date().toISOString().slice(0, 7);
+            }
+
+            const fySelect = document.getElementById('mgmt-report-fy-select');
+            const recordsList = mgmtToRecordsList(uid);
+            const recordYears = recordsList.filter(r => r && r.date).map(r => {
+                const d = new Date(r.date);
+                return d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+            });
+            const currentFY = window.getCurrentFiscalYearStart();
+            let minFY = Math.min(currentFY - 3, ...(recordYears.length ? recordYears : [currentFY]));
+            let maxFY = Math.max(currentFY + 1, ...(recordYears.length ? recordYears : [currentFY]));
+            const prevFyVal = fySelect.value;
+            fySelect.innerHTML = '';
+            for (let fy = maxFY; fy >= minFY; fy--) {
+                const opt = document.createElement('option');
+                opt.value = fy;
+                opt.innerText = `${fy} - ${fy + 1} (Jul-Jun)`;
+                fySelect.appendChild(opt);
+            }
+            fySelect.value = prevFyVal && [...fySelect.options].some(o => o.value === prevFyVal) ? prevFyVal : String(currentFY);
+
+            window.renderMgmtMonthReport();
+        };
+
+        window.renderMgmtMonthReport = function() {
+            const uid = document.getElementById('mgmt-report-user-select').value;
+            if (!uid) return;
+            const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+            const recordsList = mgmtToRecordsList(uid);
+            const monthStr = document.getElementById('mgmt-report-month').value || new Date().toISOString().slice(0, 7);
+
+            const summary = window.computeMonthSummary(recordsList, monthStr);
+            const daily = window.computeMonthDailyBreakdown(recordsList, monthStr);
+
+            document.getElementById('mgmt-report-username').innerText = profile.name || 'Unnamed User';
+            document.getElementById('mgmt-report-period').innerText = `Monthly Report: ${monthStr}`;
+            document.getElementById('mgmt-report-generated').innerText = `Generated: ${new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+            document.getElementById('mgmt-report-summary-cards').innerHTML = `
+                ${mgmtSummaryCard('Total Income', summary.total, '#1d4ed8')}
+                ${mgmtSummaryCard('User Share (50%)', summary.myShare, '#059669')}
+                ${mgmtSummaryCard('Owner Share (50%)', summary.ownerShare, '#7c3aed')}
+                ${mgmtSummaryCard('Advance Paid', summary.advance, '#b45309')}
+                ${mgmtSummaryCard('Owner Due', summary.ownerDue, '#dc2626')}
+            `;
+
+            document.getElementById('mgmt-report-col1-header').innerText = 'Date';
+
+            const tbody = document.getElementById('mgmt-report-monthly-body');
+            tbody.innerHTML = '';
+
+            if (daily.days.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="padding:10px 8px; text-align:center; border:1px solid #cbd5e1; color:#94a3b8;">No income records found for this month.</td>
+                    </tr>
+                `;
+            } else {
+                daily.days.forEach((d, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.style.background = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    tr.innerHTML = `
+                        <td style="padding:7px 8px; border:1px solid #cbd5e1;">${d.date}</td>
+                        <td style="padding:7px 8px; text-align:right; border:1px solid #cbd5e1;">৳ ${d.total.toFixed(2)}</td>
+                        <td style="padding:7px 8px; text-align:right; border:1px solid #cbd5e1; color:#059669;">৳ ${(d.total * 0.5).toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const totalRow = document.createElement('tr');
+                totalRow.innerHTML = `
+                    <td style="padding:8px; border:1px solid #0f172a; background:#0f172a; color:#ffffff; font-weight:800;">Total</td>
+                    <td style="padding:8px; text-align:right; border:1px solid #0f172a; background:#0f172a; color:#ffffff; font-weight:800;">৳ ${daily.grandTotal.toFixed(2)}</td>
+                    <td style="padding:8px; text-align:right; border:1px solid #0f172a; background:#0f172a; color:#34d399; font-weight:800;">৳ ${daily.myShareTotal.toFixed(2)}</td>
+                `;
+                tbody.appendChild(totalRow);
+            }
+
+            document.getElementById('mgmt-report-table-wrap').style.display = '';
+        };
+
+        window.renderMgmtFiscalReport = function() {
+            const uid = document.getElementById('mgmt-report-user-select').value;
+            if (!uid) return;
+            const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+            const recordsList = mgmtToRecordsList(uid);
+            const fy = document.getElementById('mgmt-report-fy-select').value;
+            if (!fy) return;
+
+            const data = window.computeFiscalYearData(recordsList, fy);
+
+            document.getElementById('mgmt-report-username').innerText = profile.name || 'Unnamed User';
+            document.getElementById('mgmt-report-period').innerText = `Fiscal Year: 01 Jul ${data.fyStartYear} - 30 Jun ${data.fyStartYear + 1}`;
+            document.getElementById('mgmt-report-generated').innerText = `Generated: ${new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+            document.getElementById('mgmt-report-summary-cards').innerHTML = `
+                ${mgmtSummaryCard('Fiscal Year Total', data.grandTotal, '#1d4ed8')}
+                ${mgmtSummaryCard('User Share (50%)', data.myShareTotal, '#059669')}
+            `;
+
+            document.getElementById('mgmt-report-col1-header').innerText = 'Month';
+
+            const tbody = document.getElementById('mgmt-report-monthly-body');
+            tbody.innerHTML = '';
+            data.monthly.forEach((m, idx) => {
+                const tr = document.createElement('tr');
+                tr.style.background = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                tr.innerHTML = `
+                    <td style="padding:7px 8px; border:1px solid #cbd5e1;">${m.label}</td>
+                    <td style="padding:7px 8px; text-align:right; border:1px solid #cbd5e1;">৳ ${m.total.toFixed(2)}</td>
+                    <td style="padding:7px 8px; text-align:right; border:1px solid #cbd5e1; color:#059669;">৳ ${(m.total * 0.5).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('mgmt-report-table-wrap').style.display = '';
+        };
+
+        window.downloadMgmtReportJPG = async function() {
+            const el = document.getElementById('mgmt-report-capture');
+            try {
+                const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+                const uid = document.getElementById('mgmt-report-user-select').value;
+                const profile = (window.adminUsersData[uid] && window.adminUsersData[uid].profile) || {};
+                const link = document.createElement('a');
+                link.download = `${(profile.name || 'User').replace(/\s+/g, '-')}-Accounting-Report.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.click();
+            } catch (e) {
+                alert('Failed to generate report image. Please try again.');
+                console.error(e);
+            }
+        };
+
+        // ---------- Shop Settings Tab ----------
+        window.previewMgmtShopLogo = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('mgmt-shop-logo-preview').src = e.target.result;
+                document.getElementById('mgmt-shop-logo-preview').classList.remove('hidden');
+                document.getElementById('mgmt-shop-logo-preview-icon').classList.add('hidden');
+                window._mgmtPendingLogoBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.saveShopSettings = async function() {
+            const name = document.getElementById('mgmt-shop-name-input').value.trim() || 'SUMON COMPUTER';
+            const preview = document.getElementById('mgmt-shop-logo-preview');
+            const logo = window._mgmtPendingLogoBase64 || (preview.classList.contains('hidden') ? '' : preview.src);
+
+            try {
+                await set(ref(db, 'shopSettings'), { name, logo: logo || '' });
+                alert('Shop settings updated successfully!');
+            } catch (e) {
+                alert('Failed to save shop settings. Please try again.');
+                console.error(e);
+            }
+        };
+
+        // ---------- Security Tab ----------
+        window.changeManagementPassword = async function() {
+            const current = document.getElementById('mgmt-sec-current-pass').value;
+            const next = document.getElementById('mgmt-sec-new-pass').value;
+            const confirmPass = document.getElementById('mgmt-sec-confirm-pass').value;
+            const msg = document.getElementById('mgmt-sec-msg');
+
+            try {
+                const snap = await get(ref(db, 'adminSettings/panelPassword'));
+                const stored = snap.exists() ? snap.val() : '123456';
+
+                if (current !== stored) {
+                    msg.innerText = 'Current password is incorrect.';
+                    msg.className = 'text-xs text-rose-400';
+                    msg.classList.remove('hidden');
+                    return;
+                }
+                if (!next || next.length < 4) {
+                    msg.innerText = 'New password must be at least 4 characters.';
+                    msg.className = 'text-xs text-rose-400';
+                    msg.classList.remove('hidden');
+                    return;
+                }
+                if (next !== confirmPass) {
+                    msg.innerText = 'New password and confirmation do not match.';
+                    msg.className = 'text-xs text-rose-400';
+                    msg.classList.remove('hidden');
+                    return;
+                }
+
+                await set(ref(db, 'adminSettings/panelPassword'), next);
+                msg.innerText = 'Password updated successfully!';
+                msg.className = 'text-xs text-emerald-400';
+                msg.classList.remove('hidden');
+                document.getElementById('mgmt-sec-current-pass').value = '';
+                document.getElementById('mgmt-sec-new-pass').value = '';
+                document.getElementById('mgmt-sec-confirm-pass').value = '';
+            } catch (e) {
+                msg.innerText = 'Failed to update password. Please try again.';
+                msg.className = 'text-xs text-rose-400';
+                msg.classList.remove('hidden');
             }
         };
     </script>
